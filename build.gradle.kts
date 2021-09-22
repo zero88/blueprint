@@ -15,28 +15,8 @@ allprojects {
         maven { url = uri("https://oss.sonatype.org/content/groups/public/") }
         mavenCentral()
     }
-}
 
-subprojects {
-    apply(plugin = "eclipse")
-    apply(plugin = "idea")
     apply(plugin = PluginLibs.oss)
-
-    java {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-    }
-
-    dependencies {
-        compileOnly(UtilLibs.lombok)
-        annotationProcessor(UtilLibs.lombok)
-
-        testImplementation(TestLibs.junit5Api)
-        testImplementation(TestLibs.junit5Engine)
-        testImplementation(TestLibs.junit5Vintage)
-        testImplementation(TestLibs.jsonAssert)
-        testCompileOnly(UtilLibs.lombok)
-        testAnnotationProcessor(UtilLibs.lombok)
-    }
 
     oss {
         zero88.set(true)
@@ -52,6 +32,27 @@ subprojects {
                 url.set("https://github.com/zero88/qwe")
             }
         }
+    }
+}
+
+subprojects {
+    apply(plugin = "eclipse")
+    apply(plugin = "idea")
+
+    java {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    dependencies {
+        compileOnly(UtilLibs.lombok)
+        annotationProcessor(UtilLibs.lombok)
+
+        testImplementation(TestLibs.junit5Api)
+        testImplementation(TestLibs.junit5Engine)
+        testImplementation(TestLibs.junit5Vintage)
+        testImplementation(TestLibs.jsonAssert)
+        testCompileOnly(UtilLibs.lombok)
+        testAnnotationProcessor(UtilLibs.lombok)
     }
 }
 

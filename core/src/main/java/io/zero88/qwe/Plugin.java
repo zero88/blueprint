@@ -1,5 +1,7 @@
 package io.zero88.qwe;
 
+import io.zero88.qwe.crypto.CryptoRequest;
+
 import lombok.NonNull;
 
 /**
@@ -12,7 +14,7 @@ import lombok.NonNull;
  * @see PluginVerticle
  */
 public interface Plugin<C extends PluginConfig, T extends PluginContext>
-    extends QWEVerticle<C>, HasPluginName, HasConfigKey {
+    extends QWEVerticle<C>, HasPluginName, HasConfigKey, CryptoRequest {
 
     /**
      * Expresses a functional that this plugin brings to. For example: {@code http-server}, {@code sql-mysql}
@@ -23,6 +25,18 @@ public interface Plugin<C extends PluginConfig, T extends PluginContext>
     @Override
     default String pluginName() {
         return this.getClass().getSimpleName();
+    }
+
+    /**
+     * Defines a particular deployment options for plugin.
+     * <p>
+     * If a {@code plugin} want to declare its deployment options, the config must be used this key and attach under
+     * {@link QWEAppConfig}
+     *
+     * @return a deployment key
+     */
+    default String deploymentKey() {
+        return PluginConfig.PLUGIN_DEPLOY_CONFIG_KEY + configKey();
     }
 
     /**
@@ -61,5 +75,10 @@ public interface Plugin<C extends PluginConfig, T extends PluginContext>
      * @see Application
      */
     Plugin<C, T> setup(T context);
+
+    @Override
+    default @NonNull SharedDataLocalProxy sharedData() {
+        return pluginContext().sharedData();
+    }
 
 }

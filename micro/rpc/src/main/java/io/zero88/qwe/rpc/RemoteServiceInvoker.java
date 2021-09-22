@@ -4,10 +4,10 @@ import io.vertx.core.Future;
 import io.zero88.qwe.HasSharedData;
 import io.zero88.qwe.micro.GatewayHeaders;
 import io.zero88.qwe.dto.msg.RequestData;
-import io.zero88.qwe.event.EventAction;
-import io.zero88.qwe.event.EventBusClient;
-import io.zero88.qwe.event.EventBusProxy;
-import io.zero88.qwe.event.EventMessage;
+import io.zero88.qwe.eventbus.EventAction;
+import io.zero88.qwe.eventbus.EventBusClient;
+import io.zero88.qwe.eventbus.EventBusProxy;
+import io.zero88.qwe.eventbus.EventMessage;
 import io.zero88.qwe.exceptions.ServiceNotFoundException;
 
 import lombok.NonNull;

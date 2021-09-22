@@ -28,13 +28,17 @@ import lombok.extern.jackson.Jacksonized;
 @AllArgsConstructor
 public final class QWEConfig implements IConfig {
 
-    @JsonProperty(value = QWEBootConfig.NAME)
+    public static final String APP_CONF_KEY = "__app__";
+    public static final String BOOT_CONF_KEY = "__system__";
+    public static final String DEPLOY_CONF_KEY = "__deploy__";
+
+    @JsonProperty(value = BOOT_CONF_KEY)
     private QWEBootConfig bootConfig;
     @Default
-    @JsonProperty(value = QWEDeployConfig.NAME)
-    private QWEDeployConfig deployConfig = new QWEDeployConfig();
+    @JsonProperty(value = DEPLOY_CONF_KEY)
+    private DeploymentOptions deployConfig = new QWEDeployConfig();
     @Default
-    @JsonProperty(value = QWEAppConfig.KEY)
+    @JsonProperty(value = APP_CONF_KEY)
     private QWEAppConfig appConfig = new QWEAppConfig();
 
     /**
@@ -42,27 +46,29 @@ public final class QWEConfig implements IConfig {
      *
      * @return QWE configuration
      */
-    public static QWEConfig create() { return QWEConfig.create(new JsonObject()); }
+    public static QWEConfig create() {return QWEConfig.create(new JsonObject());}
 
     static QWEConfig create(@NonNull JsonObject appConfig) {
         return QWEConfig.builder().appConfig(IConfig.from(appConfig, QWEAppConfig.class)).build();
     }
 
     @Override
-    public String configKey() { return null; }
+    public String configKey() {return null;}
 
     @Override
-    public Class<? extends IConfig> parent() { return null; }
+    public Class<? extends IConfig> parent() {return null;}
+
+    public static boolean isInstance(@NonNull JsonObject json) {
+        return json.containsKey(BOOT_CONF_KEY) || json.containsKey(DEPLOY_CONF_KEY) || json.containsKey(APP_CONF_KEY);
+    }
 
     public static final class QWEDeployConfig extends DeploymentOptions implements IConfig {
 
-        public static final String NAME = "__deploy__";
+        @Override
+        public String configKey() {return DEPLOY_CONF_KEY;}
 
         @Override
-        public String configKey() { return NAME; }
-
-        @Override
-        public Class<? extends IConfig> parent() { return QWEConfig.class; }
+        public Class<? extends IConfig> parent() {return QWEConfig.class;}
 
     }
 

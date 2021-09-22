@@ -2,32 +2,35 @@ package io.zero88.qwe.mock;
 
 import java.nio.file.Path;
 
+import org.jetbrains.annotations.NotNull;
+
+import io.vertx.core.json.JsonObject;
 import io.zero88.qwe.Extension;
 import io.zero88.qwe.ExtensionEntrypoint;
 import io.zero88.qwe.SharedDataLocalProxy;
+import io.zero88.qwe.crypto.CryptoContext;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
 
-public class MockExtension implements Extension<MockExtensionConfig, MockExtension>, ExtensionEntrypoint {
+public class MockExtension
+    implements Extension<MockExtensionConfig, MockExtension>, ExtensionEntrypoint<MockExtensionConfig> {
 
+    @Getter
+    @Accessors(fluent = true)
     private MockExtensionConfig extConfig;
 
     @Override
     public Extension<MockExtensionConfig, MockExtension> setup(SharedDataLocalProxy sharedData, String appName,
-                                                               Path appDir, MockExtensionConfig config) {
-        this.extConfig = config;
+                                                               Path appDir, @NotNull JsonObject config,
+                                                               @NotNull CryptoContext cryptoContext) {
+        this.extConfig = computeConfig(config);
         return this;
     }
 
     @Override
-    public void stop() {
-
-    }
-
-    @Override
-    public MockExtensionConfig extConfig() {
-        return extConfig;
-    }
+    public void stop() {}
 
     @Override
     public MockExtension entrypoint() {
@@ -53,7 +56,8 @@ public class MockExtension implements Extension<MockExtensionConfig, MockExtensi
 
         @Override
         public Extension<MockExtensionConfig, MockExtension> setup(SharedDataLocalProxy sharedData, String appName,
-                                                                   Path appDir, MockExtensionConfig config) {
+                                                                   Path appDir, @NotNull JsonObject config,
+                                                                   @NotNull CryptoContext cryptoContext) {
             throw new IllegalArgumentException("xxx");
         }
 

@@ -3,6 +3,7 @@ package io.zero88.qwe.http.client;
 import java.net.UnknownHostException;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.vertx.core.http.UpgradeRejectedException;
@@ -12,14 +13,14 @@ import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTestContext;
 import io.zero88.qwe.JsonHelper.Junit5;
 import io.zero88.qwe.TestHelper;
-import io.zero88.qwe.event.EBContract;
-import io.zero88.qwe.event.EventAction;
-import io.zero88.qwe.event.EventBusClient;
-import io.zero88.qwe.event.EventBusProxy;
-import io.zero88.qwe.event.EventDirection;
-import io.zero88.qwe.event.EventListener;
-import io.zero88.qwe.event.EventMessage;
-import io.zero88.qwe.event.EventPattern;
+import io.zero88.qwe.eventbus.EBContract;
+import io.zero88.qwe.eventbus.EventAction;
+import io.zero88.qwe.eventbus.EventBusClient;
+import io.zero88.qwe.eventbus.EventBusProxy;
+import io.zero88.qwe.eventbus.EventDirection;
+import io.zero88.qwe.eventbus.EventListener;
+import io.zero88.qwe.eventbus.EventMessage;
+import io.zero88.qwe.eventbus.EventPattern;
 import io.zero88.qwe.http.HttpException;
 import io.zero88.qwe.http.client.handler.WebSocketClientPlan;
 
@@ -37,7 +38,7 @@ public class WebSocketExtensionTest extends HttpExtensionTestBase {
     @Test
     public void test_not_found(VertxTestContext context) {
         Checkpoint cp = context.checkpoint();
-        WebSocketConnectOptions options = new WebSocketConnectOptions().setHost("echo.websocket.org").setURI("/xxx");
+        WebSocketConnectOptions options = new WebSocketConnectOptions().setHost("google.com").setURI("/xxx");
         extension.entrypoint()
                  .openWebSocket(options, WebSocketClientPlan.create(LISTENER, PUBLISHER_ADDRESS))
                  .onFailure(t -> context.verify(() -> {
@@ -67,6 +68,9 @@ public class WebSocketExtensionTest extends HttpExtensionTestBase {
     }
 
     @Test
+    @Disabled
+    //TODO need to setup simple websocket echo server: https://github.com/jmalloc/echo-server
+    //echo.websocket.org is no longer available
     public void test_connect_and_send(VertxTestContext context) {
         Checkpoint cp = context.checkpoint();
         EventBusClient eb = ((EventBusProxy) extension.entrypoint()).transporter();

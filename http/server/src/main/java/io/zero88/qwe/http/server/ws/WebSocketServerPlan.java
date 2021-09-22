@@ -4,10 +4,10 @@ import java.util.Objects;
 
 import io.github.zero88.utils.Strings;
 import io.github.zero88.utils.Urls;
-import io.zero88.qwe.event.EventDirection;
-import io.zero88.qwe.event.EventPattern;
-import io.zero88.qwe.event.bridge.EventBridgePlan;
-import io.zero88.qwe.event.bridge.EventBridgePlan.AbstractEventBridgePlan;
+import io.zero88.qwe.eventbus.EventDirection;
+import io.zero88.qwe.eventbus.EventPattern;
+import io.zero88.qwe.eventbus.bridge.EventBridgePlan;
+import io.zero88.qwe.eventbus.bridge.EventBridgePlan.AbstractEventBridgePlan;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

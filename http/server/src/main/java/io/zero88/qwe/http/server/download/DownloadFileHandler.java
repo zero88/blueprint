@@ -50,11 +50,8 @@ public abstract class DownloadFileHandler implements Handler<RoutingContext>, Do
             context.response()
                    .setChunked(true)
                    .setStatusCode(HttpResponseStatus.OK.code())
-                   .sendFile(filePath.toString(), ar -> {
-                       if (!ar.succeeded()) {
-                           logger.warn(decor("Something wrong when sending file"), ar.cause());
-                       }
-                   });
+                   .sendFile(filePath.toString())
+                   .onFailure(t -> logger.warn(decor("Something wrong when sending file"), t));
         } else {
             throw new DataNotFoundException(decor("Not found file: " + fileId + " in system"));
         }

@@ -56,6 +56,14 @@ public final class QWEJsonCodec implements JsonCodec {
         return LENIENT;
     }
 
+    public static Buffer toBuffer(Object object, ObjectMapper mapper) {
+        try {
+            return Buffer.buffer(mapper.writeValueAsBytes(object));
+        } catch (Exception e) {
+            throw new EncodeException("Failed to encode as JSON: " + e.getMessage());
+        }
+    }
+
     @Override
     public <T> T fromValue(Object json, Class<T> clazz) {
         T value = QWEJsonCodec.MAPPER.convertValue(json, clazz);
@@ -124,12 +132,7 @@ public final class QWEJsonCodec implements JsonCodec {
 
     @Override
     public Buffer toBuffer(Object object, boolean pretty) throws EncodeException {
-        try {
-            ObjectMapper mapper = pretty ? QWEJsonCodec.PRETTY : QWEJsonCodec.MAPPER;
-            return Buffer.buffer(mapper.writeValueAsBytes(object));
-        } catch (Exception e) {
-            throw new EncodeException("Failed to encode as JSON: " + e.getMessage());
-        }
+        return toBuffer(object, pretty ? QWEJsonCodec.PRETTY : QWEJsonCodec.MAPPER);
     }
 
     private static Object adapt(Object o) {

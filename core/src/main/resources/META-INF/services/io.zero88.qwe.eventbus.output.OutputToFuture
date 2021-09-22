@@ -1,0 +1,5 @@
+io.zero88.qwe.eventbus.output.VoidToFuture
+io.zero88.qwe.eventbus.output.FutureIdentify
+io.zero88.qwe.eventbus.output.Rx2SingleToFuture
+io.zero88.qwe.eventbus.output.Rx2MaybeToFuture
+io.zero88.qwe.eventbus.output.Rx2CompletableToFuture

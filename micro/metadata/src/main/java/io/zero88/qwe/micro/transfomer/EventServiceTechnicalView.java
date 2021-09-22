@@ -1,7 +1,7 @@
 package io.zero88.qwe.micro.transfomer;
 
 import io.vertx.core.json.JsonObject;
-import io.zero88.qwe.micro.httpevent.EventMethodMapping;
+import io.zero88.qwe.http.EventMethodMapping;
 
 import lombok.NonNull;
 

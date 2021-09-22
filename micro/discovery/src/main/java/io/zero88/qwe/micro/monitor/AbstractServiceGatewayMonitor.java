@@ -22,7 +22,11 @@ abstract class AbstractServiceGatewayMonitor<T> implements ServiceGatewayMonitor
 
     @Override
     public final void handle(Message<Object> message) {
-        process(parse(trace(message)));
+        try {
+            process(parse(trace(message)));
+        } catch (Exception e) {
+            logger().warn("{} error", monitorName(), e);
+        }
     }
 
     Message<Object> trace(Message<Object> message) {
@@ -46,6 +50,6 @@ abstract class AbstractServiceGatewayMonitor<T> implements ServiceGatewayMonitor
      *
      * @param monitorObject a monitor object
      */
-    protected abstract void process(T monitorObject);
+    protected void process(T monitorObject) {}
 
 }

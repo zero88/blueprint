@@ -33,9 +33,13 @@ public interface TestHelper {
     }
 
     static void setup() {
+        setup(Level.DEBUG);
+    }
+
+    static void setup(Level projLogLvl) {
         System.setProperty("vertx.logger-delegate-factory-class-name", "io.vertx.core.logging.SLF4JLogDelegateFactory");
         ((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.INFO);
-        ((Logger) LoggerFactory.getLogger("io.zero88")).setLevel(Level.DEBUG);
+        ((Logger) LoggerFactory.getLogger("io.zero88")).setLevel(projLogLvl);
     }
 
     static void testComplete(Async async) {
@@ -99,7 +103,7 @@ public interface TestHelper {
             Assertions.assertTrue(latch.await(timeout, TimeUnit.SECONDS));
         } catch (InterruptedException e) {
             Optional.ofNullable(ifFailed)
-                    .orElseGet(() -> t -> Assertions.fail("Test timeout after " + timeout + "(s)", t))
+                    .orElseGet(() -> t -> Assertions.fail("Interrupted when waiting timeout [" + timeout + "(s)]", t))
                     .handle(e);
         }
     }

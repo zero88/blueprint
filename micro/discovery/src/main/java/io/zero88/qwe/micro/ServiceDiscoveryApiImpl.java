@@ -20,6 +20,7 @@ import io.zero88.qwe.dto.ErrorMessage;
 import io.zero88.qwe.dto.msg.RequestData;
 import io.zero88.qwe.dto.msg.RequestFilter;
 import io.zero88.qwe.dto.msg.ResponseData;
+import io.zero88.qwe.exceptions.ConflictException;
 import io.zero88.qwe.exceptions.ServiceException;
 import io.zero88.qwe.exceptions.ServiceNotFoundException;
 import io.zero88.qwe.exceptions.ServiceUnavailable;
@@ -103,8 +104,8 @@ final class ServiceDiscoveryApiImpl implements ServiceDiscoveryApi {
     public Future<Record> findOne(@NonNull RequestFilter filter) {
         return find(filter, SearchFlag.ONE).map(recs -> recs.stream().reduce((m1, m2) -> {
             if (!m1.equals(m2)) {
-                throw new ServiceException(
-                    new IllegalArgumentException("More than one service by given parameters [" + filter + "]"));
+                throw new ServiceException("Service conflict", new ConflictException(
+                    "More than one service by given parameters [" + filter + "]"));
             }
             return m1;
         }).orElseThrow(() -> new ServiceNotFoundException("Not found service by given parameters [" + filter + "]")));

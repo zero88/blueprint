@@ -1,12 +1,11 @@
 package io.zero88.qwe.dto;
 
-import org.json.JSONException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import io.vertx.core.json.JsonObject;
 import io.zero88.qwe.JsonHelper;
 import io.zero88.qwe.dto.jpa.Sort;
-import io.vertx.core.json.JsonObject;
 
 public class SortTest {
 

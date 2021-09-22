@@ -14,11 +14,11 @@ import io.vertx.servicediscovery.types.HttpLocation;
 import io.zero88.qwe.JsonHelper;
 import io.zero88.qwe.dto.msg.RequestData;
 import io.zero88.qwe.dto.msg.RequestFilter;
-import io.zero88.qwe.event.EventAction;
+import io.zero88.qwe.eventbus.EventAction;
 import io.zero88.qwe.micro.filter.ByPredicateFactory;
 import io.zero88.qwe.micro.filter.ServiceFilterParam;
 import io.zero88.qwe.micro.filter.ServiceStatusPredicateFactory;
-import io.zero88.qwe.micro.httpevent.EventMethodDefinition;
+import io.zero88.qwe.http.EventMethodDefinition;
 import io.zero88.qwe.micro.mock.MockEventBusService;
 import io.zero88.qwe.micro.mock.MockServiceListener;
 
@@ -49,14 +49,17 @@ public class ServiceDiscoveryApiTest extends BaseDiscoveryPluginTest {
     @Test
     public void test_register_eventMessage(VertxTestContext context) {
         final JsonObject expected = new JsonObject(
-            "{\"location\":{\"servicePath\":\"/abc\",\"useRequestData\":true,\"mapping\":[{\"action\":\"CREATE\"," +
-            "\"capturePath\":\"/abc\",\"regexPath\":\"/abc\",\"method\":\"POST\"},{\"action\":\"UPDATE\"," +
-            "\"capturePath\":\"/abc/:ka\",\"regexPath\":\"/abc/.+\",\"method\":\"PUT\"},{\"action\":\"PATCH\"," +
-            "\"capturePath\":\"/abc/:ka\",\"regexPath\":\"/abc/.+\",\"method\":\"PATCH\"},{\"action\":\"GET_LIST\"," +
-            "\"capturePath\":\"/abc\",\"regexPath\":\"/abc\",\"method\":\"GET\"},{\"action\":\"GET_ONE\"," +
-            "\"capturePath\":\"/abc/:ka\",\"regexPath\":\"/abc/.+\",\"method\":\"GET\"},{\"action\":\"REMOVE\"," +
-            "\"capturePath\":\"/abc/:ka\",\"regexPath\":\"/abc/.+\",\"method\":\"DELETE\"}],\"endpoint\":\"address" +
-            ".1\"},\"metadata\":{},\"name\":\"event-message\",\"status\":\"UP\",\"type\":\"eventbus-2-http\"}");
+            "{\"location\":{\"regexPath\":\"/abc\",\"mapping\":[{\"action\":\"GET_LIST\",\"method\":\"GET\"," +
+            "\"capturePath\":\"/abc\",\"useRequestData\":true,\"auth\":{\"loginRequired\":false,\"authz\":[]}}," +
+            "{\"action\":\"CREATE\",\"method\":\"POST\",\"capturePath\":\"/abc\",\"useRequestData\":true," +
+            "\"auth\":{\"loginRequired\":false,\"authz\":[]}},{\"action\":\"GET_ONE\",\"method\":\"GET\"," +
+            "\"capturePath\":\"/abc/:ka\",\"useRequestData\":true,\"auth\":{\"loginRequired\":false,\"authz\":[]}}," +
+            "{\"action\":\"UPDATE\",\"method\":\"PUT\",\"capturePath\":\"/abc/:ka\",\"useRequestData\":true," +
+            "\"auth\":{\"loginRequired\":false,\"authz\":[]}},{\"action\":\"PATCH\",\"method\":\"PATCH\"," +
+            "\"capturePath\":\"/abc/:ka\",\"useRequestData\":true,\"auth\":{\"loginRequired\":false,\"authz\":[]}}," +
+            "{\"action\":\"REMOVE\",\"method\":\"DELETE\",\"capturePath\":\"/abc/:ka\",\"useRequestData\":true," +
+            "\"auth\":{\"loginRequired\":false,\"authz\":[]}}],\"endpoint\":\"address.1\"},\"metadata\":{}," +
+            "\"name\":\"event-message\",\"status\":\"UP\",\"type\":\"eventbus-2-http\"}");
         final Record rec = RecordHelper.create("event-message", "address.1",
                                                EventMethodDefinition.createDefault("/abc", "/:ka"));
         registerThenAssert(context, expected, rec);
@@ -70,17 +73,19 @@ public class ServiceDiscoveryApiTest extends BaseDiscoveryPluginTest {
                                                         .put(ServiceFilterParam.NAME, "ems")
                                                         .put(ServiceFilterParam.TYPE, "eventbus-2-http");
         final JsonObject expected = new JsonObject(
-            "{\"location\":{\"servicePath\":\"/c/[^/]+/s/[^/]+/p\",\"useRequestData\":true," +
-            "\"mapping\":[{\"action\":\"GET_LIST\",\"capturePath\":\"/c/:cId/s/:sId/p\"," +
-            "\"regexPath\":\"/c/[^/]+/s/[^/]+/p\",\"method\":\"GET\"},{\"action\":\"CREATE\"," +
-            "\"capturePath\":\"/c/:cId/s/:sId/p\",\"regexPath\":\"/c/[^/]+/s/[^/]+/p\",\"method\":\"POST\"}," +
-            "{\"action\":\"GET_ONE\",\"capturePath\":\"/c/:cId/s/:sId/p/:pId\",\"regexPath\":\"/c/[^/]+/s/[^/]+/p/" +
-            ".+\",\"method\":\"GET\"},{\"action\":\"UPDATE\",\"capturePath\":\"/c/:cId/s/:sId/p/:pId\"," +
-            "\"regexPath\":\"/c/[^/]+/s/[^/]+/p/.+\",\"method\":\"PUT\"},{\"action\":\"PATCH\"," +
-            "\"capturePath\":\"/c/:cId/s/:sId/p/:pId\",\"regexPath\":\"/c/[^/]+/s/[^/]+/p/.+\",\"method\":\"PATCH\"}," +
-            "{\"action\":\"REMOVE\",\"capturePath\":\"/c/:cId/s/:sId/p/:pId\",\"regexPath\":\"/c/[^/]+/s/[^/]+/p/" +
-            ".+\",\"method\":\"DELETE\"}],\"endpoint\":\"addr2\"},\"metadata\":{},\"name\":\"ems\"," +
-            "\"registration\":\"ignore\",\"status\":\"UP\",\"type\":\"eventbus-2-http\"}");
+            "{\"location\":{\"regexPath\":\"/c/[^/]+/s/[^/]+/p\",\"mapping\":[{\"action\":\"GET_LIST\"," +
+            "\"method\":\"GET\",\"capturePath\":\"/c/:cId/s/:sId/p\",\"useRequestData\":true," +
+            "\"auth\":{\"loginRequired\":false,\"authz\":[]}},{\"action\":\"CREATE\",\"method\":\"POST\"," +
+            "\"capturePath\":\"/c/:cId/s/:sId/p\",\"useRequestData\":true,\"auth\":{\"loginRequired\":false," +
+            "\"authz\":[]}},{\"action\":\"GET_ONE\",\"method\":\"GET\",\"capturePath\":\"/c/:cId/s/:sId/p/:pId\"," +
+            "\"useRequestData\":true,\"auth\":{\"loginRequired\":false,\"authz\":[]}},{\"action\":\"UPDATE\"," +
+            "\"method\":\"PUT\",\"capturePath\":\"/c/:cId/s/:sId/p/:pId\",\"useRequestData\":true," +
+            "\"auth\":{\"loginRequired\":false,\"authz\":[]}},{\"action\":\"PATCH\",\"method\":\"PATCH\"," +
+            "\"capturePath\":\"/c/:cId/s/:sId/p/:pId\",\"useRequestData\":true,\"auth\":{\"loginRequired\":false," +
+            "\"authz\":[]}},{\"action\":\"REMOVE\",\"method\":\"DELETE\",\"capturePath\":\"/c/:cId/s/:sId/p/:pId\"," +
+            "\"useRequestData\":true,\"auth\":{\"loginRequired\":false,\"authz\":[]}}],\"endpoint\":\"addr2\"}," +
+            "\"metadata\":{},\"name\":\"ems\",\"registration\":\"ignore\"," +
+            "\"status\":\"UP\",\"type\":\"eventbus-2-http\"}");
         discovery.register(
             RecordHelper.create("ems", "addr1", EventMethodDefinition.createDefault("/c/:cId/s", "/:sId")),
             RecordHelper.create("ems", "addr2", EventMethodDefinition.createDefault("/c/:cId/s/:sId/p", "/:pId")))
@@ -89,7 +94,6 @@ public class ServiceDiscoveryApiTest extends BaseDiscoveryPluginTest {
                      () -> JsonHelper.assertJson(expected, record.toJson(), JsonHelper.ignore("registration"))))
                  .onSuccess(event -> checkpoint.flag())
                  .onFailure(context::failNow);
-        ;
     }
 
     @Test

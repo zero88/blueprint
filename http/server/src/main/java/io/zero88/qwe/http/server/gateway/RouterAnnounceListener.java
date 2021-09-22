@@ -35,7 +35,7 @@ import lombok.NonNull;
  * </li>
  * </ul>
  */
-public class RouterAnnounceListener extends ServiceGatewayAnnounceMonitor implements DynamicRouterRegister {
+public class RouterAnnounceListener extends ServiceGatewayAnnounceMonitor implements ProxyServiceRouteRegister {
 
     protected RouterAnnounceListener(@NonNull SharedDataLocalProxy proxy, @NonNull ServiceDiscoveryApi discovery) {
         super(proxy, discovery);

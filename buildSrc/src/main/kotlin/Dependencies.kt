@@ -29,14 +29,19 @@ object PluginLibs {
     const val jooq = "nu.studer.jooq"
 }
 
-object WebLibs {
+object JSRLibs {
 
     object Version {
 
+        const val annotation = "1.3.2"
         const val jaxrs = "2.1.1"
+        const val persistence = "2.2"
     }
 
+    const val annotation = "javax.annotation:javax.annotation-api:${Version.annotation}"
     const val jaxrs = "javax.ws.rs:javax.ws.rs-api:${Version.jaxrs}"
+    const val persistence = "javax.persistence:javax.persistence-api:${Version.persistence}"
+
 }
 
 object JacksonLibs {
@@ -71,24 +76,30 @@ object VertxLibs {
 
     object Version {
 
-        const val vertx = "4.0.3"
+        const val vertx = "4.1.2"
+        const val vertxAuth = "4.1.2"
     }
 
     const val core = "io.vertx:vertx-core:${Version.vertx}"
     const val codegen = "io.vertx:vertx-codegen:${Version.vertx}"
+    const val rx2 = "io.vertx:vertx-rx-java2:${Version.vertx}"
+    const val auth = "io.vertx:vertx-auth-common:${Version.vertxAuth}"
+    const val jwt = "io.vertx:vertx-auth-jwt:${Version.vertxAuth}"
+    const val ldap = "io.vertx:vertx-auth-ldap:${Version.vertx}"
+    const val oauth2 = "io.vertx:vertx-auth-oauth2:${Version.vertx}"
+    const val webauthn = "io.vertx:vertx-auth-webauthn:${Version.vertx}"
+    const val shiro = "io.vertx:vertx-auth-shiro:${Version.vertx}"
     const val config = "io.vertx:vertx-config:${Version.vertx}"
     const val web = "io.vertx:vertx-web:${Version.vertx}"
-    const val serviceDiscovery = "io.vertx:vertx-service-discovery:${Version.vertx}"
-    const val circuitBreaker = "io.vertx:vertx-circuit-breaker:${Version.vertx}"
     const val healthCheck = "io.vertx:vertx-health-check:${Version.vertx}"
+    const val circuitBreaker = "io.vertx:vertx-circuit-breaker:${Version.vertx}"
+    const val serviceDiscovery = "io.vertx:vertx-service-discovery:${Version.vertx}"
     const val hazelcast = "io.vertx:vertx-hazelcast:${Version.vertx}"
     const val zookeeper = "io.vertx:vertx-zookeeper:${Version.vertx}"
     const val ignite = "io.vertx:vertx-ignite:${Version.vertx}"
     const val infinispan = "io.vertx:vertx-infinispan:${Version.vertx}"
-    const val rx2 = "io.vertx:vertx-rx-java2:${Version.vertx}"
     const val junit = "io.vertx:vertx-unit:${Version.vertx}"
     const val junit5 = "io.vertx:vertx-junit5:${Version.vertx}"
-
     const val jdbc = "io.vertx:vertx-jdbc-client:${Version.vertx}"
     const val pgsql = "io.vertx:vertx-pg-client:${Version.vertx}"
     const val mysql = "io.vertx:vertx-mysql-client:${Version.vertx}"

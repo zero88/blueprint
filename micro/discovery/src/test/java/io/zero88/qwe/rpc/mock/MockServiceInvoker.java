@@ -1,7 +1,7 @@
 package io.zero88.qwe.rpc.mock;
 
 import io.zero88.qwe.SharedDataLocalProxy;
-import io.zero88.qwe.event.EventBusClient;
+import io.zero88.qwe.eventbus.EventBusClient;
 import io.zero88.qwe.rpc.GatewayServiceInvoker;
 
 import lombok.NonNull;

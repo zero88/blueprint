@@ -9,29 +9,25 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
 //TODO refactor it
 @NoArgsConstructor
 public final class ResponseData extends AbstractDTO<ResponseData> {
 
     @Getter
+    @Setter
+    @Accessors(chain = true)
+    @JsonIgnore
     private HttpResponseStatus status = HttpResponseStatus.OK;
 
     public ResponseData(JsonObject headers, JsonObject body) {
         super(headers, body);
     }
 
-    public static ResponseData noContent() {
-        return new ResponseData().setStatus(HttpResponseStatus.NO_CONTENT);
-    }
-
-    public ResponseData setStatus(HttpResponseStatus status) {
-        this.status = status;
-        return this;
-    }
-
     @JsonIgnore
-    public ResponseData setStatus(int status) {
+    public ResponseData setStatusCode(int status) {
         this.status = HttpResponseStatus.valueOf(status);
         return this;
     }

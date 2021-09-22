@@ -6,6 +6,8 @@ import java.util.Optional;
 
 import org.jetbrains.annotations.Nullable;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * A {@code Plugin} configuration
  *
@@ -21,23 +23,13 @@ public interface PluginConfig extends IConfig {
     }
 
     /**
-     * Defines a particular deployment options for plugin.
-     * <p>
-     * If a {@code plugin} want to declare its deployment options, the config must be used this key and attach under
-     * {@link QWEAppConfig}
-     *
-     * @return particular
-     */
-    default String deploymentKey() {
-        return PLUGIN_DEPLOY_CONFIG_KEY + configKey();
-    }
-
-    /**
      * If a {@code Plugin} need to use local data storage then use this interface for its configuration.
      *
      * @see PluginConfig
      */
     interface PluginDirConfig extends PluginConfig {
+
+        String PLUGIN_DIR_JSON_KEY = "pluginDir";
 
         /**
          * Defines plugin dir configuration
@@ -46,6 +38,7 @@ public interface PluginConfig extends IConfig {
          *
          * @return plugin dir
          */
+        @JsonProperty(PLUGIN_DIR_JSON_KEY)
         @Nullable String getPluginDir();
 
     }
@@ -68,8 +61,8 @@ public interface PluginConfig extends IConfig {
          * @return plugin config
          */
         default Map<String, Object> find(Map<String, Object> map) {
-            if (map.containsKey(QWEAppConfig.KEY)) {
-                return find((Map<String, Object>) map.get(QWEAppConfig.KEY));
+            if (map.containsKey(QWEConfig.APP_CONF_KEY)) {
+                return find((Map<String, Object>) map.get(QWEConfig.APP_CONF_KEY));
             }
             if (map.containsKey(configKey())) {
                 return (Map<String, Object>) map.get(configKey());

@@ -17,8 +17,8 @@ import io.vertx.ext.bridge.BridgeEventType;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.zero88.qwe.JsonHelper.Junit4;
-import io.zero88.qwe.event.EventAction;
-import io.zero88.qwe.event.EventMessage;
+import io.zero88.qwe.eventbus.EventAction;
+import io.zero88.qwe.eventbus.EventMessage;
 import io.zero88.qwe.http.server.ws.WebSocketBridgeEventHandler;
 import io.zero88.qwe.http.server.ws.WebSocketServerPlan;
 

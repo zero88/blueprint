@@ -16,9 +16,9 @@ import io.zero88.qwe.ExtensionEntrypoint;
 import io.zero88.qwe.HasLogger;
 import io.zero88.qwe.dto.JsonData;
 import io.zero88.qwe.dto.msg.RequestData;
-import io.zero88.qwe.event.EBContext;
-import io.zero88.qwe.event.EBContract;
-import io.zero88.qwe.event.EventListener;
+import io.zero88.qwe.eventbus.EBContext;
+import io.zero88.qwe.eventbus.EBContract;
+import io.zero88.qwe.eventbus.EventListener;
 import io.zero88.qwe.file.TextFileOperator;
 import io.zero88.qwe.file.TextFileOperatorImpl;
 import io.zero88.qwe.file.converter.BufferConverter;
@@ -27,9 +27,10 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
-public class JsonStorageService implements EventListener, ExtensionEntrypoint, HasLogger {
+public class JsonStorageService implements EventListener, ExtensionEntrypoint<JsonStorageConfig>, HasLogger {
 
     @SuppressWarnings("unchecked")
     public static <T extends JsonStorageService> T create(@NonNull Path rootDir, @NonNull JsonStorageConfig config) {
@@ -40,7 +41,9 @@ public class JsonStorageService implements EventListener, ExtensionEntrypoint, H
 
     @Getter(value = AccessLevel.PACKAGE)
     private final Path rootDir;
-    private final JsonStorageConfig config;
+    @Getter
+    @Accessors(fluent = true)
+    private final JsonStorageConfig extConfig;
 
     @EBContract(action = "CREATE_OR_UPDATE")
     public Future<JsonObject> createOrUpdate(@EBContext Vertx vertx, RequestData requestData) {
@@ -103,22 +106,22 @@ public class JsonStorageService implements EventListener, ExtensionEntrypoint, H
 
     protected Future<JsonArray> loadArray(Vertx vertx, @NonNull JsonInput ji) {
         return operator(vertx).loadArray(rootDir.resolve(ji.getFile()),
-                                         Optional.ofNullable(ji.getFileOption()).orElse(config.getOption()));
+                                         Optional.ofNullable(ji.getFileOption()).orElse(extConfig.getOption()));
     }
 
     protected Future<JsonObject> loadJson(Vertx vertx, @NonNull JsonInput ji) {
         return operator(vertx).loadJson(rootDir.resolve(ji.getFile()),
-                                        Optional.ofNullable(ji.getFileOption()).orElse(config.getOption()));
+                                        Optional.ofNullable(ji.getFileOption()).orElse(extConfig.getOption()));
     }
 
     protected Future<Path> writeJson(Vertx vertx, @NonNull JsonInput ji, Object data) {
         return operator(vertx).write(rootDir.resolve(ji.getFile()),
-                                     Optional.ofNullable(ji.getFileOption()).orElse(config.getOption()),
+                                     Optional.ofNullable(ji.getFileOption()).orElse(extConfig.getOption()),
                                      JsonData.tryParse(data).toJson(), BufferConverter.JSON_OBJECT_CONVERTER);
     }
 
     private TextFileOperator operator(Vertx vertx) {
-        return TextFileOperatorImpl.builder().vertx(vertx).maxSize(config.getMaxSizeInMB()).build();
+        return TextFileOperatorImpl.builder().vertx(vertx).maxSize(extConfig.getMaxSizeInMB()).build();
     }
 
 }

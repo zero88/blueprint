@@ -1,9 +1,7 @@
 {
   "host": "0.0.0.0",
   "port": 8080,
-  "publicHost": "",
-  "publicPort": -1,
-  "publicScheme": "HTTP",
+  "publicServerUrl": "",
   "maxBodySizeMB": 2,
   "pluginDir": "httpserver",
   "allowForwardHeaders": "ALL",
@@ -92,7 +90,7 @@
   "__api__": {
     "enabled": true,
     "path": "/api",
-    "__dynamic__": {
+    "__proxy__": {
       "enabled": false,
       "path": "/s"
     }

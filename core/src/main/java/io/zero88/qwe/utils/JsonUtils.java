@@ -12,7 +12,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.TimeZone;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import io.github.zero88.repl.Reflections;
@@ -117,6 +119,45 @@ public final class JsonUtils {
                            }
                            return new JsonObject();
                        });
+    }
+
+    public static class JsonCollectors {
+
+        public static <T> Collector<T, JsonArray, JsonArray> toArray() {
+            return toArray(Function.identity());
+        }
+
+        public static <T, X> Collector<T, JsonArray, JsonArray> toArray(Function<T, X> fun) {
+            return Collector.of(JsonArray::new, (array, t) -> array.add(fun.apply(t)), JsonArray::addAll,
+                                Collector.Characteristics.IDENTITY_FINISH);
+        }
+
+        public static <T> Collector<T, JsonObject, JsonObject> toJson(Function<T, String> keyMapper,
+                                                                      Function<T, ?> valueMapper) {
+            return toJson(keyMapper, valueMapper,
+                          (v, v2) -> {throw new IllegalStateException(String.format("Duplicate key %s", v));});
+        }
+
+        public static <T> Collector<T, JsonObject, JsonObject> toJson(Function<T, String> keyMapper,
+                                                                      Function<T, ?> valueMapper,
+                                                                      BinaryOperator<Object> mergeFunction) {
+            return Collector.of(JsonObject::new, (json, element) -> json.getMap()
+                                                                        .merge(keyMapper.apply(element),
+                                                                               valueMapper.apply(element),
+                                                                               mergeFunction), mapMerger(mergeFunction),
+                                Collector.Characteristics.IDENTITY_FINISH);
+        }
+
+        private static BinaryOperator<JsonObject> mapMerger(BinaryOperator<Object> mergeFunction) {
+            return (m1, m2) -> {
+                while (m2.iterator().hasNext()) {
+                    Map.Entry<String, Object> e = m2.iterator().next();
+                    m1.getMap().merge(e.getKey(), e.getValue(), mergeFunction);
+                }
+                return m1;
+            };
+        }
+
     }
 
 }

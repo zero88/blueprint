@@ -12,16 +12,14 @@ import io.github.zero88.exceptions.ErrorCodeException;
 import io.github.zero88.exceptions.HiddenException;
 import io.github.zero88.repl.ReflectionClass;
 import io.github.zero88.utils.Strings;
-import io.zero88.qwe.dto.ErrorMessage;
 
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 
 /**
  * Convert any {@code throwable} to friendly {@code QWEException}. The converter result will be showed directly to end
- * user, any technical information will be log.
+ * user, any technical information will be logged.
  *
- * @see ErrorMessage
  * @see QWEException
  */
 @AllArgsConstructor
@@ -85,17 +83,21 @@ public class QWEExceptionConverter implements Function<Throwable, QWEException> 
             List<Throwable> exceptions = ((io.reactivex.exceptions.CompositeException) throwable).getExceptions();
             t = exceptions.get(exceptions.size() - 1);
         }
-        final Throwable cause = t.getCause();
+        if (t instanceof IllegalArgumentException || t instanceof NullPointerException) {
+            return new QWEException(ErrorCode.INVALID_ARGUMENT, t.getMessage(), t.getCause());
+        }
         if (t instanceof ErrorCodeException) {
             final ErrorCodeException e = (ErrorCodeException) t;
             if (ErrorCode.REFLECTION_ERROR.equals(e.errorCode())) {
-                return apply(cause);
+                return apply(t.getCause());
             }
             return overrideMsg(friendly ? convert(e, t instanceof QWEException) : e);
         }
-        if (cause instanceof QWEException) {
-            logger.debug("Wrapper Exception: ", t);
-            final QWEException c = (QWEException) cause;
+        if (t.getCause() instanceof QWEException) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Wrapper Exception: ", t);
+            }
+            final QWEException c = (QWEException) t.getCause();
             return overrideMsg(friendly ? convert(c, false) : c);
         }
         return convert(new QWEException(ErrorCode.UNKNOWN_ERROR, overrideMsg, t), false);
@@ -108,20 +110,20 @@ public class QWEExceptionConverter implements Function<Throwable, QWEException> 
         return new QWEException(t.errorCode(), Strings.fallback(overrideMsg, t.getMessage()), t.getCause());
     }
 
-    private QWEException convert(ErrorCodeException t, boolean wrapperIsQWE) {
-        final Throwable cause = t.getCause();
-        final ErrorCode code = t.errorCode();
+    private QWEException convert(ErrorCodeException throwable, boolean wrapperIsQWE) {
+        final Throwable cause = throwable.getCause();
+        final ErrorCode code = throwable.errorCode();
         if (Objects.isNull(cause)) {
-            if (t instanceof QWEException) {
-                return (QWEException) t;
+            if (throwable instanceof QWEException) {
+                return (QWEException) throwable;
             }
-            return new QWEException(code, t.getMessage());
+            return new QWEException(code, throwable.getMessage());
         }
-        final String msgOrCode = originMessage(code, t.getMessage());
+        final String msgOrCode = originMessage(code, throwable.getMessage());
         if (cause instanceof IllegalArgumentException || cause instanceof NullPointerException) {
-            final String msg = Strings.isBlank(cause.getMessage()) ? msgOrCode : cause.getMessage();
-            final Throwable rootCause = Objects.isNull(cause.getCause()) ? cause : cause.getCause();
-            return new QWEException(ErrorCode.INVALID_ARGUMENT, msg, rootCause);
+            return new QWEException(code,
+                                    includeCauseMessage(msgOrCode, ErrorCode.INVALID_ARGUMENT, cause.getMessage()),
+                                    cause.getCause());
         }
         if (cause instanceof ErrorCodeException) {
             if (!wrapperIsQWE && cause instanceof QWEException) {
@@ -141,16 +143,20 @@ public class QWEExceptionConverter implements Function<Throwable, QWEException> 
             return message;
         }
         String mc = cause.getMessage().equals("null") ? cause.toString() : cause.getMessage();
-        return Strings.format("{0} | Cause: {1}", message, mc);
+        return Strings.format("{0} | Cause({1})", message, mc);
     }
 
     private String includeCauseMessage(@NonNull ErrorCodeException cause, @NonNull String message) {
-        if (ErrorCode.HIDDEN.equals(cause.errorCode()) || cause instanceof HiddenException) {
-            return message;
-        }
-        ErrorCode code = cause.errorCode();
-        String causeMsg = Objects.isNull(cause.getMessage()) ? "" : cause.getMessage();
-        return Strings.format("{0} | Cause: {1} - Error Code: {2}", message, causeMsg, code.code());
+        return cause instanceof HiddenException
+               ? message
+               : includeCauseMessage(message, cause.errorCode(), cause.getMessage());
+    }
+
+    private String includeCauseMessage(String message, ErrorCode causeCode, String causeMsg) {
+        return ErrorCode.HIDDEN.code().equals(causeCode.code())
+               ? message
+               : Strings.format("{0} | Cause({1}) - Code({2})", message, Strings.fallback(causeMsg, ""),
+                                causeCode.code());
     }
 
 }

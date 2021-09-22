@@ -4,9 +4,9 @@ import io.vertx.core.Future;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.zero88.qwe.SharedDataLocalProxy;
 import io.zero88.qwe.dto.msg.RequestData;
-import io.zero88.qwe.event.EventAction;
-import io.zero88.qwe.event.EventBusClient;
-import io.zero88.qwe.event.EventMessage;
+import io.zero88.qwe.eventbus.EventAction;
+import io.zero88.qwe.eventbus.EventBusClient;
+import io.zero88.qwe.eventbus.EventMessage;
 
 import lombok.AccessLevel;
 import lombok.NonNull;

@@ -1,7 +1,8 @@
 dependencies {
     api(project(":qwe-core"))
     api(VertxLibs.web)
-    api(WebLibs.jaxrs)
+    api(JSRLibs.jaxrs)
+    
     compileOnly(project(":micro:discovery"))
     compileOnly(VertxLibs.serviceDiscovery)
 

@@ -12,8 +12,8 @@ import io.vertx.ext.web.handler.sockjs.BridgeEvent;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 import io.zero88.qwe.HasLogger;
 import io.zero88.qwe.SharedDataLocalProxy;
-import io.zero88.qwe.event.EventAction;
-import io.zero88.qwe.event.EventMessage;
+import io.zero88.qwe.eventbus.EventAction;
+import io.zero88.qwe.eventbus.EventMessage;
 import io.zero88.qwe.http.server.HttpSystem.WebSocketSystem;
 
 import lombok.NonNull;

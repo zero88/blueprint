@@ -3,7 +3,6 @@ package io.zero88.qwe.mock;
 import io.zero88.qwe.PluginContext;
 import io.zero88.qwe.PluginProvider;
 import io.zero88.qwe.PluginVerticle;
-import io.zero88.qwe.SharedDataLocalProxy;
 import io.zero88.qwe.mock.MockPluginProvider.MockPlugin;
 
 import lombok.Getter;
@@ -21,27 +20,26 @@ public class MockPluginProvider implements PluginProvider<MockPlugin> {
     public Class<MockPlugin> pluginClass() {return MockPlugin.class;}
 
     @Override
-    public MockPlugin provide(SharedDataLocalProxy sharedData) {
-        return new MockPlugin(sharedData, error);
+    public MockPlugin get() {
+        return new MockPlugin(error);
     }
 
-    static final class MockPlugin extends PluginVerticle<MockPluginConfig, PluginContext> {
+    public static final class MockPlugin extends PluginVerticle<MockPluginConfig, PluginContext> {
 
         @Getter
         private final boolean error;
 
-        public MockPlugin(SharedDataLocalProxy sharedData) {
-            this(sharedData, false);
+        public MockPlugin() {
+            this(false);
+        }
+
+        public MockPlugin(boolean error) {
+            this.error = error;
         }
 
         @Override
         public String pluginName() {
             return "mock";
-        }
-
-        public MockPlugin(SharedDataLocalProxy sharedData, boolean error) {
-            super(sharedData);
-            this.error = error;
         }
 
         @Override
@@ -51,7 +49,7 @@ public class MockPluginProvider implements PluginProvider<MockPlugin> {
 
         @Override
         public @NonNull String configFile() {
-            return "config.json";
+            return "mock-plugin.json";
         }
 
         @Override

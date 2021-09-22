@@ -11,8 +11,8 @@ public class QWELauncher extends Launcher {
         System.setProperty("vertx.logger-delegate-factory-class-name", "io.vertx.core.logging.SLF4JLogDelegateFactory");
     }
 
-    public static void main(String[] args) {
-        new QWELauncher().unregister("bare").dispatch(args);
+    public QWELauncher() {
+        unregister("bare").unregister("test");
     }
 
     @Override
@@ -26,6 +26,10 @@ public class QWELauncher extends Launcher {
 
     protected boolean hasBanner(String command) {
         return !Arrays.asList("about", "version").contains(command);
+    }
+
+    public static void main(String[] args) {
+        new QWELauncher().dispatch(args);
     }
 
 }

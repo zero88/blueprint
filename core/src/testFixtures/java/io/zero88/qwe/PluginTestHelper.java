@@ -12,6 +12,7 @@ import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.junit5.VertxTestContext;
+import io.zero88.qwe.crypto.CryptoContext;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public interface PluginTestHelper extends AppContextTest {
@@ -29,11 +30,12 @@ public interface PluginTestHelper extends AppContextTest {
     default <T extends Plugin> T deploy(Vertx vertx, VertxTestContext context, PluginConfig config,
                                         PluginProvider<T> provider,
                                         Map<Class<? extends Extension>, ExtensionConfig> extConfigMap) {
-        T plugin = provider.provide(createSharedData(vertx));
-        Set<Extension> ext = getExtensions(provider, plugin.sharedData(), appName(), testDir(), extConfigMap);
+        T plugin = provider.get();
+        SharedDataLocalProxy sharedData = createSharedData(vertx);
+        Set<Extension> extensions = getExtensions(provider, sharedData, appName(), testDir(), extConfigMap);
         DeploymentOptions options = new DeploymentOptions().setConfig(config.toJson());
         return VertxHelper.deploy(vertx, context, DeployContext.<T>builder()
-                                                               .verticle(preDeploy(plugin, ext))
+                                                               .verticle(preDeploy(sharedData, plugin, extensions))
                                                                .options(options)
                                                                .successAsserter(id -> {
                                                                    postDeploy(plugin, id);
@@ -45,7 +47,7 @@ public interface PluginTestHelper extends AppContextTest {
     default <T extends Plugin> void deployFailed(Vertx vertx, VertxTestContext context, PluginConfig config,
                                                  PluginProvider<T> provider, Consumer<Throwable> handler) {
         VertxHelper.deploy(vertx, context, DeployContext.<T>builder()
-                                                        .verticle(provider.provide(createSharedData(vertx)))
+                                                        .verticle(provider.get())
                                                         .options(new DeploymentOptions().setConfig(config.toJson()))
                                                         .failedAsserter(handler)
                                                         .build());
@@ -53,11 +55,12 @@ public interface PluginTestHelper extends AppContextTest {
 
     default <T extends Plugin> T deploy(Vertx vertx, TestContext context, PluginConfig config,
                                         PluginProvider<T> provider) {
-        T plugin = provider.provide(createSharedData(vertx));
-        Set<Extension> ext = getExtensions(provider, plugin.sharedData(), appName(), testDir(), null);
+        T plugin = provider.get();
+        SharedDataLocalProxy sharedData = createSharedData(vertx);
+        Set<Extension> extensions = getExtensions(provider, sharedData, appName(), testDir(), null);
         DeploymentOptions options = new DeploymentOptions().setConfig(config.toJson());
         return VertxHelper.deploy(vertx, context, DeployContext.<T>builder()
-                                                               .verticle(preDeploy(plugin, ext))
+                                                               .verticle(preDeploy(sharedData, plugin, extensions))
                                                                .options(options)
                                                                .successAsserter(id -> postDeploy(plugin, id))
                                                                .build());
@@ -66,19 +69,24 @@ public interface PluginTestHelper extends AppContextTest {
     default <T extends Plugin> void deployFailed(Vertx vertx, TestContext context, PluginConfig config,
                                                  PluginProvider<T> provider, Consumer<Throwable> handler) {
         VertxHelper.deploy(vertx, context, DeployContext.<T>builder()
-                                                        .verticle(provider.provide(createSharedData(vertx)))
+                                                        .verticle(provider.get())
                                                         .options(new DeploymentOptions().setConfig(config.toJson()))
                                                         .failedAsserter(handler)
                                                         .build());
     }
 
-    default <T extends Plugin> T preDeploy(T plugin, Set<Extension> extensions) {
-        PluginContext ctx = PluginContext.create(appName(), plugin.pluginName(), sharedKey(), testDir(), extensions);
+    default <T extends Plugin> T preDeploy(SharedDataLocalProxy sharedData, T plugin, Set<Extension> extensions) {
+        PluginContext ctx = PluginContext.create(appName(), plugin.pluginName(), testDir(), sharedData, extensions,
+                                                 pluginCryptoContext());
         return (T) plugin.deployHook().onPreDeploy(plugin, ctx);
     }
 
     default <T extends Plugin> T postDeploy(T plugin, String deploymentId) {
         return (T) plugin.deployHook().onPostDeploy(plugin, plugin.pluginContext().deployId(deploymentId));
+    }
+
+    default CryptoContext pluginCryptoContext() {
+        return CryptoContext.empty();
     }
 
     @NonNull

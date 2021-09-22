@@ -9,8 +9,7 @@ import io.zero88.jooqx.SQLPreparedQuery;
 import io.zero88.jooqx.SQLResultCollector;
 import io.zero88.qwe.PluginContext;
 import io.zero88.qwe.PluginVerticle;
-import io.zero88.qwe.SharedDataLocalProxy;
-import io.zero88.qwe.event.EventMessage;
+import io.zero88.qwe.eventbus.EventMessage;
 import io.zero88.qwe.sql.handler.EntityHandler;
 import io.zero88.qwe.sql.handler.JooqxBaseExtension;
 
@@ -23,9 +22,8 @@ public final class SQLPlugin<S, B, PQ extends SQLPreparedQuery<B>, RS, RC extend
     private final EntityHandler<S, B, PQ, RS, RC, E> handler;
     private final Class<JooqxBaseExtension<S, B, PQ, RS, RC, E>> jooqxExtensionClass;
 
-    SQLPlugin(SharedDataLocalProxy sharedData, Class<EntityHandler<S, B, PQ, RS, RC, E>> handlerClass,
+    SQLPlugin(Class<EntityHandler<S, B, PQ, RS, RC, E>> handlerClass,
               Class<JooqxBaseExtension<S, B, PQ, RS, RC, E>> jooqxExtensionClass) {
-        super(sharedData);
         this.handler = Objects.requireNonNull(ReflectionClass.createObject(handlerClass),
                                               "Not found Entity Handler[" + handlerClass.getName() + "]");
         this.jooqxExtensionClass = jooqxExtensionClass;

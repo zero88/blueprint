@@ -5,9 +5,12 @@ import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Vertx;
+import io.vertx.core.cli.CLIException;
+import io.vertx.core.cli.CommandLine;
 import io.vertx.core.cli.annotations.DefaultValue;
 import io.vertx.core.cli.annotations.Description;
 import io.vertx.core.cli.annotations.Name;
@@ -19,42 +22,33 @@ import io.vertx.core.impl.launcher.commands.BareCommand;
 import io.vertx.core.impl.launcher.commands.ExecUtils;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.spi.cluster.ClusterManager;
+import io.vertx.core.spi.launcher.ExecutionContext;
 import io.zero88.qwe.IConfig;
 import io.zero88.qwe.QWEBootConfig;
+import io.zero88.qwe.cluster.ClusterFactoryServiceLoader;
 import io.zero88.qwe.cluster.ClusterManagerFactory;
 import io.zero88.qwe.cluster.ClusterNodeListener;
-import io.zero88.qwe.cluster.ClusterType;
-import io.zero88.qwe.cluster.ClusterFactoryServiceLoader;
 import io.zero88.qwe.cluster.ClusterNodeListenerServiceLoader;
+import io.zero88.qwe.cluster.ClusterType;
 
 import lombok.Getter;
 
-@Summary("Creates a clustered QWE instance")
-@Description("This command launches a clustered QWE instance but do not deploy any verticles. It will " +
+@Summary("Creates a bare QWE instance")
+@Description("This command launches a vert.x instance but do not deploy any verticles. It will " +
              "receive a verticle if another node of the cluster dies.")
 @Name("boot")
-public final class BootCommand extends BareCommand {
+public class BootCommand extends BareCommand {
 
-    protected QWEBootConfig options;
-    private boolean ha;
+    public static final String KEY_STORE_CONFIG = "keyStoreConf";
+    public static final String KEY_STORE_CLI_OPT = "keyStore";
+    public static final String TRUST_STORE_CLI_OPT = "trustStore";
+    protected QWEBootConfig bootConf;
     @Getter
-    private String clusterType;
-    private boolean clusterLiteMember;
-    private String clusterConfigFile;
-    private boolean clusterIsMandatory = true;
-
-    /**
-     * Enable the high availability (HA) deployment.
-     *
-     * @param ha high-availability flag, default is false.
-     */
-    @Option(longName = "ha", acceptValue = false, flag = true)
-    @Description(
-        "If specified the verticle will be deployed as a high availability (HA) deployment. This means it can " +
-        "fail over to any other nodes in the cluster started with the same HA group.")
-    public void setHighAvailability(boolean ha) {
-        this.ha = ha;
-    }
+    protected String clusterType;
+    protected boolean clusterLiteMember;
+    protected String clusterConfigFile;
+    protected String keyStoreConfig;
+    protected String trustStoreConfig;
 
     /**
      * Sets the HA group name.
@@ -69,11 +63,6 @@ public final class BootCommand extends BareCommand {
     @DefaultValue(QWEBootConfig.DEFAULT_HA_GROUP)
     public void setHAGroup(String group) {
         this.haGroup = group;
-    }
-
-    @Override
-    public boolean getHA() {
-        return this.ha;
     }
 
     /**
@@ -111,19 +100,42 @@ public final class BootCommand extends BareCommand {
         this.clusterLiteMember = clusterLiteMember;
     }
 
-    @Override
-    public boolean isClustered() {
-        return Objects.nonNull(this.clusterType);
+    @Option(longName = "keyStore", argName = "keyStore")
+    @Description("Specifies the KeyStore config. It should reference either a JSON file which represents the " +
+                 "config OR be a JSON string.")
+    public void setKeyStore(String keyStoreConfig) {
+        this.keyStoreConfig = keyStoreConfig;
     }
 
-    /**
-     * Make application can be standalone
-     *
-     * @return a reference to this, so the API can be used fluently
-     */
-    protected BootCommand canBeStandalone() {
-        this.clusterIsMandatory = false;
-        return this;
+    @Option(longName = "trustStore", argName = "trustStore")
+    @Description("Specifies the Trust Store config. It should reference either a JSON file which represents the " +
+                 "config OR be a JSON string.")
+    public void setTrustStore(String trustStoreConfig) {
+        this.trustStoreConfig = trustStoreConfig;
+    }
+
+    @Override
+    public boolean isClustered() {
+        return Objects.nonNull(clusterType);
+    }
+
+    @Override
+    public void setUp(ExecutionContext ec) throws CLIException {
+        super.setUp(ec);
+        CommandLine commandLine = executionContext.commandLine();
+        if (!isClustered() &&
+            Stream.of("cluster-host", "cluster-port", "cluster-public-host", "cluster-public-port", "cluster-conf",
+                      "cluster-lite-member")
+                  .anyMatch(o -> commandLine.isOptionAssigned(executionContext.cli().getOption(o)))) {
+            throw new CLIException("The -cluster-xxx options require -cluster to be enabled");
+        }
+
+        // If quorum and / or ha-group, ha need to have been explicitly set
+        io.vertx.core.cli.Option haGroupOption = executionContext.cli().getOption("hagroup");
+        io.vertx.core.cli.Option quorumOption = executionContext.cli().getOption("quorum");
+        if (!getHA() && (commandLine.isOptionAssigned(haGroupOption) || commandLine.isOptionAssigned(quorumOption))) {
+            throw new CLIException("The option -hagroup and -quorum requires -ha to be enabled");
+        }
     }
 
     /**
@@ -133,10 +145,12 @@ public final class BootCommand extends BareCommand {
      */
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     protected Vertx startVertx() {
-        options = buildVertxOptions();
-        VertxBuilder builder = new VertxBuilder(options);
+        if (bootConf == null) {
+            bootConf = buildVertxOptions(getJsonFromFileOrString(vertxOptions, "options"));
+        }
+        VertxBuilder builder = new VertxBuilder(bootConf);
 
-        beforeStartingVertx(options);
+        beforeStartingVertx(bootConf);
         builder.init();
 
         Vertx instance;
@@ -172,54 +186,52 @@ public final class BootCommand extends BareCommand {
         return instance;
     }
 
-    protected QWEBootConfig buildVertxOptions() {
-        JsonObject cfg = Optional.ofNullable(getJsonFromFileOrString(vertxOptions, "options"))
-                                 .orElseGet(JsonObject::new);
-        QWEBootConfig config = IConfig.from(cfg, QWEBootConfig.class);
-        config.setEventBusOptions(this.getEventBusOptions(config.getEventBusOptions().toJson()));
-        configureFromSystemProperties(config, VERTX_OPTIONS_PROP_PREFIX);
-        configureFromSystemProperties(config.getMetricsOptions(), METRICS_OPTIONS_PROP_PREFIX);
-        config.setClusterType(Optional.ofNullable(clusterType).orElse(config.getClusterType().type()));
-        if (!isClustered() && clusterIsMandatory) {
+    protected QWEBootConfig buildVertxOptions(JsonObject options) {
+        QWEBootConfig conf = IConfig.from(Optional.ofNullable(options).orElseGet(JsonObject::new), QWEBootConfig.class);
+        conf.setEventBusOptions(getEventBusOptions(conf.getEventBusOptions().toJson()));
+        //        configureFromSystemProperties(config, VERTX_OPTIONS_PROP_PREFIX);
+        //        configureFromSystemProperties(config.getMetricsOptions(), METRICS_OPTIONS_PROP_PREFIX);
+        conf.setClusterType(Optional.ofNullable(clusterType).orElse(conf.getClusterType().type()));
+        if (!isClustered()) {
             log.error("Required cluster mode by passing \"-cluster-type\" in CLI option or defining property " +
                       "in a configuration file");
             ExecUtils.exitBecauseOfVertxInitializationIssue();
         }
         if (isClustered()) {
             if (clusterLiteMember) {
-                config.setClusterLiteMember(true);
+                conf.setClusterLiteMember(true);
             }
             if (Objects.nonNull(clusterConfigFile)) {
-                config.setClusterConfigFile(clusterConfigFile);
+                conf.setClusterConfigFile(clusterConfigFile);
             }
             if (!Objects.equals(clusterHost, EventBusOptions.DEFAULT_CLUSTER_HOST)) {
-                config.getEventBusOptions().setHost(clusterHost);
+                conf.getEventBusOptions().setHost(clusterHost);
             }
             if (clusterPort > EventBusOptions.DEFAULT_CLUSTER_PORT) {
-                config.getEventBusOptions().setPort(clusterPort);
+                conf.getEventBusOptions().setPort(clusterPort);
             }
             if (!Objects.equals(clusterPublicHost, EventBusOptions.DEFAULT_CLUSTER_PUBLIC_HOST)) {
-                config.getEventBusOptions().setClusterPublicHost(clusterPublicHost);
+                conf.getEventBusOptions().setClusterPublicHost(clusterPublicHost);
             }
             if (clusterPublicPort > EventBusOptions.DEFAULT_CLUSTER_PUBLIC_PORT) {
-                config.getEventBusOptions().setClusterPublicPort(clusterPublicPort);
+                conf.getEventBusOptions().setClusterPublicPort(clusterPublicPort);
             } else {
-                config.getEventBusOptions().setClusterPublicPort(config.getEventBusOptions().getPort());
+                conf.getEventBusOptions().setClusterPublicPort(conf.getEventBusOptions().getPort());
             }
 
             if (getHA()) {
-                config.setHAEnabled(true);
+                conf.setHAEnabled(true);
                 if (haGroup != null) {
-                    config.setHAGroup(haGroup);
+                    conf.setHAGroup(haGroup);
                 }
                 if (quorum != -1) {
-                    config.setQuorumSize(quorum);
+                    conf.setQuorumSize(quorum);
                 }
             }
-            if (Objects.isNull(config.getEventBusOptions().getClusterNodeMetadata())) {
-                config.getEventBusOptions().setClusterNodeMetadata(VersionCommand.getVersion().toJson());
+            if (Objects.isNull(conf.getEventBusOptions().getClusterNodeMetadata())) {
+                conf.getEventBusOptions().setClusterNodeMetadata(VersionCommand.getVersion().toJson());
             }
-            config.setClusterManager(createClusterManager(config));
+            conf.setClusterManager(createClusterManager(conf));
         }
         if (log.isDebugEnabled()) {
             if (log.isTraceEnabled()) {
@@ -232,21 +244,24 @@ public final class BootCommand extends BareCommand {
                                                     .put("clusterPublicPort", clusterPublicPort)
                                                     .put("ha", getHA())
                                                     .put("haGroup", haGroup)
-                                                    .put("quorum", quorum);
-                log.trace("CFG OPTION: " + cfg);
+                                                    .put("quorum", quorum)
+                                                    .put(KEY_STORE_CLI_OPT, keyStoreConfig)
+                                                    .put(TRUST_STORE_CLI_OPT, trustStoreConfig);
+                log.trace("CFG OPTION: " + options);
                 log.trace("CLI OPTION: " + cliOpt);
             }
-            log.debug("QWE BOOT CONFIG: " + config.toJson());
+            log.debug("QWE BOOT CONFIG: " + conf.toJson());
         }
-        return config;
+        return conf;
     }
 
     @Override
     protected void afterStartingVertx(Vertx instance) {
         final ClusterNodeListener listener = new ClusterNodeListenerServiceLoader().listener();
         if (listener != null && instance.isClustered()) {
-            options.getClusterManager().nodeListener(listener.setup(vertx, options));
+            bootConf.getClusterManager().nodeListener(listener.setup(instance, bootConf));
         }
+        instance.getOrCreateContext().put(KEY_STORE_CONFIG, bootConf.getKeyStoreConfig());
         super.afterStartingVertx(instance);
     }
 

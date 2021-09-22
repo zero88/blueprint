@@ -1,7 +1,5 @@
 package io.zero88.qwe.http.server.rest;
 
-import java.io.IOException;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,7 +25,7 @@ public class AcceptAndContentHeaderTest extends HttpServerPluginTestBase impleme
     private static final String XML_CONTENT_TYPE = "/application/xml";
 
     @Before
-    public void before(TestContext context) throws IOException {
+    public void before(TestContext context) {
         super.before(context);
         startServer(context, new HttpServerRouter().registerApi(MockRestAPI.class));
     }

@@ -1,14 +1,13 @@
 package io.zero88.qwe.http.server.gateway;
 
-import io.vertx.ext.web.Router;
-import io.zero88.qwe.SharedDataLocalProxy;
-import io.zero88.qwe.http.server.HttpServerPluginContext;
+import java.util.function.Function;
+
+import io.zero88.qwe.http.server.HttpRuntimeConfig;
+import io.zero88.qwe.http.server.HttpServerConfig;
 import io.zero88.qwe.http.server.config.ApiGatewayConfig;
-import io.zero88.qwe.http.server.rest.RestEventApisCreator;
+import io.zero88.qwe.http.server.rest.RestEventApisCreatorImpl;
 
-import lombok.NonNull;
-
-public class GatewayRouterCreator extends RestEventApisCreator<ApiGatewayConfig> {
+public final class GatewayRouterCreator extends RestEventApisCreatorImpl<GatewayApi, ApiGatewayConfig> {
 
     @Override
     public String function() {
@@ -16,9 +15,18 @@ public class GatewayRouterCreator extends RestEventApisCreator<ApiGatewayConfig>
     }
 
     @Override
-    public @NonNull Router subRouter(@NonNull ApiGatewayConfig config, @NonNull SharedDataLocalProxy sharedData) {
-        sharedData.addData(HttpServerPluginContext.SERVER_GATEWAY_ADDRESS_DATA_KEY, config.getAddress());
-        return super.subRouter(config, sharedData);
+    public Function<HttpServerConfig, ApiGatewayConfig> lookupConfig() {
+        return HttpServerConfig::getApiGatewayConfig;
+    }
+
+    @Override
+    protected String subFunction() {
+        return "GatewayAPI";
+    }
+
+    @Override
+    protected void register(HttpRuntimeConfig runtimeConfig) {
+        register(runtimeConfig.getGatewayApiClasses());
     }
 
 }

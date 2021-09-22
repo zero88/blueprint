@@ -2,6 +2,7 @@ package io.zero88.qwe.example.boot;
 
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.spi.cluster.ClusterManager;
 import io.vertx.core.spi.cluster.NodeInfo;
 import io.zero88.qwe.QWEBootConfig;
@@ -27,9 +28,9 @@ public final class ClusterNodeManager implements ClusterNodeListener {
         log.info("Added node: {}", nodeID);
         final ClusterManager clusterManager = config.getClusterManager();
         log.info("{}", clusterManager.getNodes());
-        Promise<NodeInfo> promise = Promise.promise();
-        clusterManager.getNodeInfo(nodeID, promise);
-        promise.future().onComplete(ar -> {
+        Promise<NodeInfo> p = vertx instanceof VertxInternal ? ((VertxInternal) vertx).promise() : Promise.promise();
+        clusterManager.getNodeInfo(nodeID, p);
+        p.future().onComplete(ar -> {
             if (ar.succeeded()) {
                 final NodeInfo node = ar.result();
                 log.info(node.host() + ":" + node.port() + "----" + node.metadata());

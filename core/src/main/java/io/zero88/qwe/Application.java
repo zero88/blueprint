@@ -2,10 +2,14 @@ package io.zero88.qwe;
 
 import java.util.Optional;
 
+import org.jetbrains.annotations.NotNull;
+
 import io.vertx.core.Future;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.impl.VertxImpl;
 import io.zero88.qwe.launcher.VersionCommand;
+import io.zero88.qwe.crypto.CryptoContext;
+import io.zero88.qwe.crypto.CryptoHolder;
 
 import lombok.NonNull;
 
@@ -18,9 +22,15 @@ import lombok.NonNull;
  * @see HasConfig
  * @see ApplicationVerticle
  */
+@SuppressWarnings("rawtypes")
 public interface Application extends QWEVerticle<QWEAppConfig>, HasAppName, HasSharedKey {
 
-    String DEFAULT_PLUGIN_THREAD_PREFIX = "qwe-plugin-thread-";
+    static String generateThreadName(Class<? extends Application> cls, String appName, String pluginName) {
+        if (cls.getName().equals(appName)) {
+            return cls.getSimpleName() + "-plugin-" + pluginName + "-thread";
+        }
+        return appName + "-plugin-" + pluginName + "-thread";
+    }
 
     /**
      * Application name
@@ -48,7 +58,11 @@ public interface Application extends QWEVerticle<QWEAppConfig>, HasAppName, HasS
     }
 
     default String sharedKey() {
-        return this.getClass().getName();
+        return getClass().getName();
+    }
+
+    default String generatePluginThreadName(String pluginName) {
+        return generateThreadName(getClass(), appName(), pluginName);
     }
 
     /**
@@ -87,13 +101,14 @@ public interface Application extends QWEVerticle<QWEAppConfig>, HasAppName, HasS
     }
 
     /**
-     * Install the registered {@code plugins} based on the given providers from {@link #addProvider(PluginProvider)}
+     * Install the registered {@code plugins} in {@code dedicated thread group} based on the given providers from {@link
+     * #addProvider(PluginProvider)}
      * <p>
-     * If any plugin verticle starts failed, future will catch and report it to {@code Vertx}
+     * If any {@code plugin} verticle starts failed, {@code application} will be failed to start as well
      *
      * @return void future
      * @apiNote You can override {@code DeploymentOptions} per {@code plugin} by declared options with key {@link
-     *     PluginConfig#deploymentKey()} under {@link QWEAppConfig}
+     *     Plugin#deploymentKey()} under {@link QWEAppConfig}
      */
     Future<Void> installPlugins();
 
@@ -124,5 +139,28 @@ public interface Application extends QWEVerticle<QWEAppConfig>, HasAppName, HasS
      * @param holder Context holder
      */
     void onInstallCompleted(@NonNull ApplicationContextHolder holder);
+
+    /**
+     * Lookup a cryptographic context per extension
+     *
+     * @param cryptoHolder a cryptographic holder
+     * @param extension    an extension
+     * @return a crypto context that associates to the given extension
+     */
+    default @NotNull CryptoContext lookupCryptoContext(@NotNull CryptoHolder cryptoHolder,
+                                                       @NotNull Extension extension) {
+        return cryptoHolder.lookup(extension);
+    }
+
+    /**
+     * Lookup a cryptographic context per extension
+     *
+     * @param cryptoHolder a cryptographic holder
+     * @param plugin       a plugin
+     * @return a crypto context that associates to the given plugin
+     */
+    default @NotNull CryptoContext lookupCryptoContext(@NotNull CryptoHolder cryptoHolder, @NotNull Plugin plugin) {
+        return cryptoHolder.lookup(plugin);
+    }
 
 }

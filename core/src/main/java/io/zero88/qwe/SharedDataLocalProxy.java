@@ -3,7 +3,7 @@ package io.zero88.qwe;
 import io.vertx.core.Vertx;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.core.shareddata.SharedData;
-import io.zero88.qwe.event.EventBusClient;
+import io.zero88.qwe.eventbus.EventBusClient;
 
 /**
  * Represents for shared local data from {@code Application} to {@code Plugin(s)}

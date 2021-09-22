@@ -1,5 +1,0 @@
-io.zero88.qwe.event.output.VoidToFuture
-io.zero88.qwe.event.output.FutureIdentify
-io.zero88.qwe.event.output.Rx2SingleToFuture
-io.zero88.qwe.event.output.Rx2MaybeToFuture
-io.zero88.qwe.event.output.Rx2CompletableToFuture

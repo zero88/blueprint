@@ -15,7 +15,7 @@ import io.vertx.junit5.VertxTestContext;
 import io.zero88.qwe.IConfig;
 import io.zero88.qwe.PluginTestHelper.PluginDeployTest;
 import io.zero88.qwe.TestHelper;
-import io.zero88.qwe.event.EventBusClient;
+import io.zero88.qwe.eventbus.EventBusClient;
 
 @ExtendWith(VertxExtension.class)
 public abstract class BaseDiscoveryPluginTest implements PluginDeployTest<DiscoveryPlugin> {

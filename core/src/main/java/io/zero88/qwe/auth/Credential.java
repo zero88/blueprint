@@ -33,7 +33,7 @@ public interface Credential extends JsonData {
         public static final CredentialType BASIC = new CredentialType("BASIC");
         public static final CredentialType TOKEN = new CredentialType("TOKEN");
 
-        protected CredentialType(String type) {
+        private CredentialType(String type) {
             super(type);
         }
 

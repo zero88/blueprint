@@ -34,7 +34,7 @@ public final class MockApplication extends ApplicationVerticle {
 
     @Override
     public String configFile() {
-        return "mock-container.json";
+        return "mock-app.json";
     }
 
 }

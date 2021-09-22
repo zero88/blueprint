@@ -12,7 +12,7 @@
     },
     "__http__": {
       "__api__": {
-        "__dynamic__": {
+        "__proxy__": {
           "enabled": true,
           "path": "/s"
         }

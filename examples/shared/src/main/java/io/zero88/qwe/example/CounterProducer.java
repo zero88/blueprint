@@ -3,9 +3,9 @@ package io.zero88.qwe.example;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.Counter;
 import io.zero88.qwe.ApplicationVerticle;
-import io.zero88.qwe.event.EventAction;
-import io.zero88.qwe.event.EventBusClient;
-import io.zero88.qwe.event.EventMessage;
+import io.zero88.qwe.eventbus.EventAction;
+import io.zero88.qwe.eventbus.EventBusClient;
+import io.zero88.qwe.eventbus.EventMessage;
 
 public abstract class CounterProducer extends ApplicationVerticle implements CounterApp {
 

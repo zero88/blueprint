@@ -17,6 +17,7 @@ import io.vertx.core.metrics.MetricsOptions;
 import io.vertx.core.spi.cluster.ClusterManager;
 import io.vertx.core.tracing.TracingOptions;
 import io.zero88.qwe.cluster.ClusterType;
+import io.zero88.qwe.launcher.BootCommand;
 import io.zero88.qwe.utils.NetworkUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -36,7 +37,6 @@ import lombok.experimental.FieldNameConstants;
 @FieldNameConstants
 public final class QWEBootConfig extends VertxOptions implements IConfig {
 
-    public static final String NAME = "__system__";
     public static final int DEFAULT_EVENT_BUS_PORT = 2468;
     public static final String DEFAULT_CACHE_DIR = Paths.get(System.getProperty("java.io.tmpdir", "."), "qwe-cache")
                                                         .toString();
@@ -53,8 +53,12 @@ public final class QWEBootConfig extends VertxOptions implements IConfig {
     @Getter
     @Accessors(fluent = true)
     private Path clusterConfigFile = null;
+    @Getter
+    @Setter
+    @Accessors(chain = true)
+    private JsonObject keyStoreConfig;
 
-    public QWEBootConfig() { this.delegate = defVertxOpts(); }
+    public QWEBootConfig() {this.delegate = defVertxOpts();}
 
     @JsonCreator
     public QWEBootConfig(Map<String, Object> map) {
@@ -62,7 +66,8 @@ public final class QWEBootConfig extends VertxOptions implements IConfig {
             this.delegate = defVertxOpts();
             return;
         }
-        this.setClusterType((String) map.remove(Fields.clusterType))
+        this.setKeyStoreConfig(JsonObject.mapFrom(map.remove(BootCommand.KEY_STORE_CONFIG)))
+            .setClusterType((String) map.remove(Fields.clusterType))
             .setClusterConfigFile(Objects.toString(map.remove(Fields.clusterConfigFile), null))
             .setClusterLiteMember(Optional.ofNullable(map.remove(Fields.clusterLiteMember))
                                           .map(Object::toString)
@@ -92,10 +97,10 @@ public final class QWEBootConfig extends VertxOptions implements IConfig {
     }
 
     @Override
-    public String configKey() { return NAME; }
+    public String configKey() {return QWEConfig.BOOT_CONF_KEY;}
 
     @Override
-    public Class<? extends IConfig> parent() { return QWEConfig.class; }
+    public Class<? extends IConfig> parent() {return QWEConfig.class;}
 
     @Override
     public JsonObject toJson() {
@@ -104,10 +109,14 @@ public final class QWEBootConfig extends VertxOptions implements IConfig {
 
     @Override
     public JsonObject toJson(ObjectMapper mapper) {
-        return delegate.toJson()
-                       .put(Fields.clusterType, clusterType.type())
-                       .put(Fields.clusterLiteMember, clusterLiteMember)
-                       .put(Fields.clusterConfigFile, clusterConfigFile);
+        final JsonObject json = delegate.toJson()
+                                        .put(Fields.clusterType, clusterType.type())
+                                        .put(Fields.clusterLiteMember, clusterLiteMember)
+                                        .put(Fields.clusterConfigFile, clusterConfigFile);
+        if (Objects.nonNull(keyStoreConfig)) {
+            return json.put(BootCommand.KEY_STORE_CONFIG, keyStoreConfig);
+        }
+        return json;
     }
 
     @Override

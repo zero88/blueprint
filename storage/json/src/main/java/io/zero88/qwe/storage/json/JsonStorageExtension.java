@@ -2,9 +2,13 @@ package io.zero88.qwe.storage.json;
 
 import java.nio.file.Path;
 
+import org.jetbrains.annotations.NotNull;
+
+import io.vertx.core.json.JsonObject;
 import io.zero88.qwe.Extension;
 import io.zero88.qwe.SharedDataLocalProxy;
-import io.zero88.qwe.event.EventBusClient;
+import io.zero88.qwe.eventbus.EventBusClient;
+import io.zero88.qwe.crypto.CryptoContext;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -14,7 +18,6 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true)
 public final class JsonStorageExtension implements Extension<JsonStorageConfig, JsonStorageService> {
 
-    private JsonStorageConfig extConfig;
     private JsonStorageService entrypoint;
 
     @Override
@@ -34,10 +37,9 @@ public final class JsonStorageExtension implements Extension<JsonStorageConfig, 
 
     @Override
     public JsonStorageExtension setup(SharedDataLocalProxy sharedData, String appName, Path appDir,
-                                      JsonStorageConfig config) {
-        extConfig = config == null ? JsonStorageConfig.create() : config;
-        entrypoint = JsonStorageService.create(appDir, extConfig);
-        EventBusClient.create(sharedData).register(extConfig.getServiceAddress(), entrypoint);
+                                      @NotNull JsonObject config, @NotNull CryptoContext cryptoContext) {
+        entrypoint = JsonStorageService.create(appDir, computeConfig(config));
+        EventBusClient.create(sharedData).register(entrypoint.extConfig().getServiceAddress(), entrypoint);
         return this;
     }
 

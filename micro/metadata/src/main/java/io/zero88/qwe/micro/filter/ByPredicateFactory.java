@@ -16,12 +16,12 @@ import lombok.NonNull;
  * Represents for predicate that is built from {@code identifier} and {@code indicator} in the runtime filter
  * <p>
  * For example:
- * <pre>
+ * <pre>{@code
  * /find?identifier=sample.name&by=name
  * /find?identifier=sample&by=group
  * /find?identifier=uuid&by=registration
  * /find?identifier="/test/123"&by=path
- * </pre>
+ * }</pre>
  *
  * @see RecordPredicateFactory
  * @see ServiceFilterParam#BY

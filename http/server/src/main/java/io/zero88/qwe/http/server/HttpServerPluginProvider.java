@@ -1,7 +1,6 @@
 package io.zero88.qwe.http.server;
 
 import io.zero88.qwe.PluginProvider;
-import io.zero88.qwe.SharedDataLocalProxy;
 
 import lombok.RequiredArgsConstructor;
 
@@ -11,8 +10,8 @@ public final class HttpServerPluginProvider implements PluginProvider<HttpServer
     private final HttpServerRouter httpRouter;
 
     @Override
-    public HttpServerPlugin provide(SharedDataLocalProxy sharedData) {
-        return new HttpServerPlugin(sharedData, httpRouter);
+    public HttpServerPlugin get() {
+        return new HttpServerPlugin(httpRouter);
     }
 
     @Override

@@ -6,9 +6,11 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import io.zero88.qwe.PluginConfig.PluginDirConfig;
+import io.zero88.qwe.crypto.CryptoContext;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -21,21 +23,22 @@ import lombok.experimental.Accessors;
  * @see Plugin
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
-public interface PluginContext extends HasAppName, HasPluginName, HasSharedKey, ExtensionHolder {
+public interface PluginContext extends HasAppName, HasPluginName, HasSharedData, ExtensionHolder {
 
     /**
      * Create a pre-context of plugin before deploying it
      *
-     * @param appName    an associate app name
-     * @param pluginName an associate plugin name
-     * @param sharedKey  a shared key to access local data in {@code Application}
-     * @param dataDir    a current application data dir
-     * @param extensions the dependency extensions
+     * @param appName       an associate app name
+     * @param pluginName    an associate plugin name
+     * @param dataDir       a plugin data dir
+     * @param sharedData    a shared data proxy in {@code Application}
+     * @param extensions    the dependency extensions
+     * @param cryptoContext crypto request
      * @return a plugin pre-context
      */
-    static PluginContext create(String appName, String pluginName, String sharedKey, Path dataDir,
-                                Collection<? extends Extension> extensions) {
-        return new DefaultPluginContext(appName, pluginName, dataDir, sharedKey, extensions);
+    static PluginContext create(String appName, String pluginName, Path dataDir, SharedDataLocalProxy sharedData,
+                                Collection<? extends Extension> extensions, CryptoContext cryptoContext) {
+        return new DefaultPluginContext(appName, pluginName, dataDir, sharedData, extensions, cryptoContext);
     }
 
     /**
@@ -46,6 +49,8 @@ public interface PluginContext extends HasAppName, HasPluginName, HasSharedKey, 
      * @see PluginDirConfig
      */
     @Nullable Path dataDir();
+
+    @NotNull CryptoContext cryptoContext();
 
     /**
      * A Plugin deployment id
@@ -69,23 +74,26 @@ public interface PluginContext extends HasAppName, HasPluginName, HasSharedKey, 
         private final String appName;
         private final String pluginName;
         private final Path dataDir;
-        private final String sharedKey;
+        private final SharedDataLocalProxy sharedData;
         private final Map<Class<? extends Extension>, Extension> extensionMap;
+        private final CryptoContext cryptoContext;
         @Setter
         private String deployId;
 
         protected DefaultPluginContext(@NonNull PluginContext ctx) {
-            this(ctx.appName(), ctx.pluginName(), ctx.dataDir(), ctx.sharedKey(), ctx.extensions());
+            this(ctx.appName(), ctx.pluginName(), ctx.dataDir(), ctx.sharedData(), ctx.extensions(),
+                 ctx.cryptoContext());
             this.deployId = ctx.deployId();
         }
 
-        DefaultPluginContext(String appName, String pluginName, Path dataDir, String sharedKey,
-                             Collection<? extends Extension> extensions) {
+        DefaultPluginContext(String appName, String pluginName, Path dataDir, SharedDataLocalProxy sharedData,
+                             Collection<? extends Extension> extensions, CryptoContext cryptoContext) {
             this.appName = appName;
             this.pluginName = pluginName;
             this.dataDir = dataDir;
-            this.sharedKey = sharedKey;
+            this.sharedData = sharedData;
             this.extensionMap = extensions.stream().collect(Collectors.toMap(Extension::getClass, Function.identity()));
+            this.cryptoContext = cryptoContext;
         }
 
         @Override

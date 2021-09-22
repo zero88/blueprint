@@ -2,9 +2,9 @@ package io.zero88.qwe;
 
 import io.zero88.qwe.dto.ErrorData;
 import io.zero88.qwe.dto.msg.RequestData;
-import io.zero88.qwe.event.EBContract;
-import io.zero88.qwe.event.EventListener;
-import io.zero88.qwe.event.EventPattern;
+import io.zero88.qwe.eventbus.EBContract;
+import io.zero88.qwe.eventbus.EventListener;
+import io.zero88.qwe.eventbus.EventPattern;
 
 import lombok.NonNull;
 

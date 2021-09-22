@@ -1,7 +1,7 @@
 package io.zero88.qwe.http.server.mock;
 
-import io.zero88.qwe.event.EventDirection;
-import io.zero88.qwe.event.EventPattern;
+import io.zero88.qwe.eventbus.EventDirection;
+import io.zero88.qwe.eventbus.EventPattern;
 import io.zero88.qwe.http.server.ws.WebSocketServerPlan;
 
 public class MockWebSocketEvent {

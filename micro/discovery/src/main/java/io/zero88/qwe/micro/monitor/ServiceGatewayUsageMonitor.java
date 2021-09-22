@@ -31,9 +31,4 @@ public class ServiceGatewayUsageMonitor extends AbstractServiceGatewayMonitor<Us
         return UsageInfo.parse((JsonObject) trace(message).body());
     }
 
-    @Override
-    protected void process(UsageInfo monitorObject) {
-
-    }
-
 }

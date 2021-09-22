@@ -5,7 +5,6 @@ import java.util.Collections;
 
 import io.zero88.qwe.Extension;
 import io.zero88.qwe.PluginProvider;
-import io.zero88.qwe.SharedDataLocalProxy;
 import io.zero88.qwe.http.client.HttpClientExtension;
 
 public final class DiscoveryPluginProvider implements PluginProvider<DiscoveryPlugin> {
@@ -14,8 +13,8 @@ public final class DiscoveryPluginProvider implements PluginProvider<DiscoveryPl
     public Class<DiscoveryPlugin> pluginClass() {return DiscoveryPlugin.class;}
 
     @Override
-    public DiscoveryPlugin provide(SharedDataLocalProxy sharedData) {
-        return new DiscoveryPlugin(sharedData);
+    public DiscoveryPlugin get() {
+        return new DiscoveryPlugin();
     }
 
     @Override

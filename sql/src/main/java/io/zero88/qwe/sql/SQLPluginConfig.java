@@ -47,12 +47,14 @@ public final class SQLPluginConfig extends DynamicPluginConfigImpl<SQLPluginConf
      */
     private DBEmbeddedMode embeddedMode;
 
-    public SQLPluginConfig() { this(null); }
+    public SQLPluginConfig() {this(null);}
 
     @JsonCreator
     SQLPluginConfig(Map<String, Object> map) {
         super(map);
-        this.pluginDir = Optional.ofNullable(remove("pluginDir")).map(Object::toString).orElse(null);
+        this.pluginDir = Optional.ofNullable(remove(PluginDirConfig.PLUGIN_DIR_JSON_KEY))
+                                 .map(Object::toString)
+                                 .orElse(null);
         this.dialect = Optional.ofNullable(remove("dialect")).map(d -> SQLDialect.valueOf(d.toString())).orElse(null);
         this.jooqxExtensionClass = Optional.ofNullable(remove("jooqxExtensionClass"))
                                            .map(Object::toString)
@@ -88,7 +90,7 @@ public final class SQLPluginConfig extends DynamicPluginConfigImpl<SQLPluginConf
 
     @Override
     public JsonObject toJson(@NonNull ObjectMapper mapper) {
-        JsonObject kv = new JsonObject().put("pluginDir", pluginDir)
+        JsonObject kv = new JsonObject().put(PluginDirConfig.PLUGIN_DIR_JSON_KEY, pluginDir)
                                         .put("dialect", Objects.isNull(dialect) ? null : dialect.name())
                                         .put("jooqxExtensionClass", jooqxExtensionClass)
                                         .put("autoDetect", autoDetect)

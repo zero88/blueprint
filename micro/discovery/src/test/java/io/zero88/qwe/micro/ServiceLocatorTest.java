@@ -14,11 +14,11 @@ import io.vertx.servicediscovery.types.HttpLocation;
 import io.zero88.qwe.JsonHelper.Junit5;
 import io.zero88.qwe.dto.msg.RequestData;
 import io.zero88.qwe.dto.msg.RequestFilter;
-import io.zero88.qwe.event.EventAction;
-import io.zero88.qwe.event.EventMessage;
-import io.zero88.qwe.event.EventStatus;
+import io.zero88.qwe.eventbus.EventAction;
+import io.zero88.qwe.eventbus.EventMessage;
+import io.zero88.qwe.eventbus.EventStatus;
 import io.zero88.qwe.exceptions.ErrorCode;
-import io.zero88.qwe.micro.httpevent.EventMethodDefinition;
+import io.zero88.qwe.http.EventMethodDefinition;
 import io.zero88.qwe.micro.filter.ByPredicateFactory;
 import io.zero88.qwe.micro.filter.ServiceFilterParam;
 import io.zero88.qwe.micro.transfomer.RecordTransformer.ViewType;
@@ -86,13 +86,17 @@ public class ServiceLocatorTest extends BaseDiscoveryPluginTest {
     @Test
     public void test_get_by_name_with_technical_view(VertxTestContext context) {
         JsonObject value = new JsonObject(
-            "{\"endpoint\":\"ea1\",\"paths\":[{\"action\":\"CREATE\",\"capturePath\":\"/path\"," +
-            "\"regexPath\":\"/path\",\"method\":\"POST\"},{\"action\":\"UPDATE\",\"capturePath\":\"/path/:param\"," +
-            "\"regexPath\":\"/path/.+\",\"method\":\"PUT\"},{\"action\":\"PATCH\",\"capturePath\":\"/path/:param\"," +
-            "\"regexPath\":\"/path/.+\",\"method\":\"PATCH\"},{\"action\":\"GET_LIST\",\"capturePath\":\"/path\"," +
-            "\"regexPath\":\"/path\",\"method\":\"GET\"},{\"action\":\"GET_ONE\",\"capturePath\":\"/path/:param\"," +
-            "\"regexPath\":\"/path/.+\",\"method\":\"GET\"},{\"action\":\"REMOVE\",\"capturePath\":\"/path/:param\"," +
-            "\"regexPath\":\"/path/.+\",\"method\":\"DELETE\"}],\"name\":\"er1\",\"status\":\"UP\"}");
+            "{\"name\":\"er1\",\"status\":\"UP\",\"endpoint\":\"ea1\",\"paths\":[{\"action\":\"GET_LIST\"," +
+            "\"method\":\"GET\",\"capturePath\":\"/path\",\"useRequestData\":true,\"auth\":{\"loginRequired\":false," +
+            "\"authz\":[]}},{\"action\":\"CREATE\",\"method\":\"POST\",\"capturePath\":\"/path\"," +
+            "\"useRequestData\":true,\"auth\":{\"loginRequired\":false,\"authz\":[]}},{\"action\":\"GET_ONE\"," +
+            "\"method\":\"GET\",\"capturePath\":\"/path/:param\",\"useRequestData\":true," +
+            "\"auth\":{\"loginRequired\":false,\"authz\":[]}},{\"action\":\"UPDATE\",\"method\":\"PUT\"," +
+            "\"capturePath\":\"/path/:param\",\"useRequestData\":true,\"auth\":{\"loginRequired\":false," +
+            "\"authz\":[]}},{\"action\":\"PATCH\",\"method\":\"PATCH\",\"capturePath\":\"/path/:param\"," +
+            "\"useRequestData\":true,\"auth\":{\"loginRequired\":false,\"authz\":[]}},{\"action\":\"REMOVE\"," +
+            "\"method\":\"DELETE\",\"capturePath\":\"/path/:param\",\"useRequestData\":true," +
+            "\"auth\":{\"loginRequired\":false,\"authz\":[]}}]}");
         RequestData reqData = RequestData.builder()
                                          .body(new JsonObject().put(ServiceFilterParam.IDENTIFIER, "er1"))
                                          .filter(new JsonObject().put(ServiceFilterParam.BY, "name")
@@ -128,9 +132,10 @@ public class ServiceLocatorTest extends BaseDiscoveryPluginTest {
                                                .body(new JsonObject().put(ServiceFilterParam.IDENTIFIER, "g"))
                                                .filter(new JsonObject().put(ServiceFilterParam.BY, "group"))
                                                .build();
-        final JsonObject failed = new JsonObject().put("code", "INVALID_ARGUMENT")
-                                                  .put("message", "More than one service by given parameters " +
-                                                                  "[{\"by\":\"group\",\"identifier\":\"g\"}]");
+        final JsonObject failed = new JsonObject().put("code", "SERVICE_ERROR")
+                                                  .put("message", "Service conflict | Cause(More than one service by " +
+                                                                  "given parameters [{\"by\":\"group\"," +
+                                                                  "\"identifier\":\"g\"}]) - Code(CONFLICT_ERROR)");
         discovery.register(RecordHelper.create("g.er1", "ea1", EventMethodDefinition.createDefault("/a", "/:b")),
                            RecordHelper.create("g.er2", "ea2", EventMethodDefinition.createDefault("/x", "/:y")))
                  .flatMap(cf -> queryOneButFailed(context, reqData, failed));

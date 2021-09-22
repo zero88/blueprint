@@ -1,6 +1,5 @@
 package io.zero88.qwe.http.server.ws;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -25,9 +24,9 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.zero88.qwe.JsonHelper.Junit4;
 import io.zero88.qwe.TestHelper;
 import io.zero88.qwe.dto.ErrorMessage;
-import io.zero88.qwe.event.EventAction;
-import io.zero88.qwe.event.EventBusClient;
-import io.zero88.qwe.event.EventMessage;
+import io.zero88.qwe.eventbus.EventAction;
+import io.zero88.qwe.eventbus.EventBusClient;
+import io.zero88.qwe.eventbus.EventMessage;
 import io.zero88.qwe.exceptions.ErrorCode;
 import io.zero88.qwe.http.server.HttpServerPluginTestBase;
 import io.zero88.qwe.http.server.HttpServerRouter;
@@ -42,7 +41,7 @@ public class WebSocketEventServerTest extends HttpServerPluginTestBase implement
     public Timeout timeout = Timeout.seconds(20);
 
     @Before
-    public void before(TestContext context) throws IOException {
+    public void before(TestContext context) {
         super.before(context);
         this.httpConfig.getApiConfig().setEnabled(false);
         this.httpConfig.getWebSocketConfig().setEnabled(true);
@@ -169,9 +168,9 @@ public class WebSocketEventServerTest extends HttpServerPluginTestBase implement
         final Async async = context.async(2);
         final EventMessage ackExpected = EventMessage.replyError(EventAction.CREATE,
                                                                  ErrorMessage.parse(ErrorCode.SERVICE_NOT_FOUND,
-                                                                                    "Service not found | Cause: " +
-                                                                                    "Unsupported event [CREATE] - " +
-                                                                                    "Error Code: UNSUPPORTED"));
+                                                                                    "Service not found | Cause" +
+                                                                                    "(Unsupported event [CREATE]) - " +
+                                                                                    "Code(UNSUPPORTED)"));
         final EventMessage openedMsg = createOpenedMessage(MockWebSocketEvent.FULL_PLAN);
         final String path = wsPath(MockWebSocketEvent.FULL_PLAN);
         this.setupWSClient(context, path)

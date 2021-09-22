@@ -4,7 +4,7 @@ import io.vertx.core.Future;
 import io.zero88.jooqx.SQLExecutor;
 import io.zero88.jooqx.SQLPreparedQuery;
 import io.zero88.jooqx.SQLResultCollector;
-import io.zero88.qwe.event.EventMessage;
+import io.zero88.qwe.eventbus.EventMessage;
 import io.zero88.qwe.sql.SQLLogSystem;
 import io.zero88.qwe.sql.handler.EntityHandler;
 

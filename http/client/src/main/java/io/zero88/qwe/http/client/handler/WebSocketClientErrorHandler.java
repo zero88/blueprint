@@ -6,8 +6,8 @@ import io.github.zero88.repl.Arguments;
 import io.github.zero88.repl.ReflectionClass;
 import io.vertx.core.Handler;
 import io.zero88.qwe.HasLogger;
-import io.zero88.qwe.event.EventBusClient;
-import io.zero88.qwe.event.EventDirection;
+import io.zero88.qwe.eventbus.EventBusClient;
+import io.zero88.qwe.eventbus.EventDirection;
 
 import lombok.Getter;
 import lombok.NonNull;

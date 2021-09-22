@@ -1,6 +1,5 @@
 package io.zero88.qwe.file;
 
-import org.json.JSONException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -9,7 +8,7 @@ import io.zero88.qwe.JsonHelper;
 class FileOptionTest {
 
     @Test
-    void serialize() throws JSONException {
+    void serialize() {
         final FileOption opt = FileOption.create();
         Assertions.assertTrue(opt.isAutoCreate());
         Assertions.assertTrue(opt.isOverwrite());

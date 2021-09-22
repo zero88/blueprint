@@ -5,6 +5,8 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.function.Function;
 
+import io.github.zero88.utils.Strings;
+import io.github.zero88.utils.Urls;
 import io.netty.resolver.dns.DnsNameResolverException;
 import io.netty.resolver.dns.DnsNameResolverTimeoutException;
 import io.vertx.core.Future;
@@ -19,6 +21,7 @@ import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.UpgradeRejectedException;
 import io.vertx.core.http.WebSocket;
 import io.vertx.core.http.WebSocketConnectOptions;
+import io.vertx.core.http.impl.HttpClientImpl;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
@@ -26,13 +29,14 @@ import io.zero88.qwe.ApplicationVersion;
 import io.zero88.qwe.SharedDataLocalProxy;
 import io.zero88.qwe.dto.msg.RequestData;
 import io.zero88.qwe.dto.msg.ResponseData;
-import io.zero88.qwe.event.EventAction;
-import io.zero88.qwe.event.EventBusClient;
-import io.zero88.qwe.event.EventDirection;
-import io.zero88.qwe.event.EventMessage;
+import io.zero88.qwe.eventbus.EventAction;
+import io.zero88.qwe.eventbus.EventBusClient;
+import io.zero88.qwe.eventbus.EventDirection;
+import io.zero88.qwe.eventbus.EventMessage;
 import io.zero88.qwe.exceptions.TimeoutException;
 import io.zero88.qwe.http.HttpException;
 import io.zero88.qwe.http.HttpUtils.HttpHeaderUtils;
+import io.zero88.qwe.http.HttpUtils.HttpRequestUtils;
 import io.zero88.qwe.http.client.handler.HttpClientJsonResponseHandler;
 import io.zero88.qwe.http.client.handler.WebSocketClientDispatcher;
 import io.zero88.qwe.http.client.handler.WebSocketClientErrorHandler;
@@ -51,11 +55,11 @@ class HttpClientWrapperImpl implements HttpClientWrapperInternal {
     private final String userAgent;
     private final Path appDir;
     private final EventBusClient transporter;
-    private final HttpClientConfig config;
+    private final HttpClientConfig extConfig;
     private HttpClient client;
 
     HttpClientWrapperImpl(SharedDataLocalProxy sharedData, String appName, Path appDir, HttpClientConfig config) {
-        this.config = config;
+        this.extConfig = config;
         this.id = config.toJson().hashCode();
         this.client = sharedData.getVertx().createHttpClient(config.getOptions());
         this.transporter = EventBusClient.create(sharedData);
@@ -66,8 +70,11 @@ class HttpClientWrapperImpl implements HttpClientWrapperInternal {
     }
 
     HttpClientWrapperImpl(HttpClient client, String userAgent) {
-        this.config = new HttpClientConfig();
-        this.id = config.toJson().hashCode();
+        this.extConfig = new HttpClientConfig().setUserAgent(userAgent);
+        if (client instanceof HttpClientImpl) {
+            extConfig.setOptions(((HttpClientImpl) client).getOptions());
+        }
+        this.id = extConfig.toJson().hashCode();
         this.userAgent = userAgent;
         this.client = client;
         this.transporter = null;
@@ -93,14 +100,21 @@ class HttpClientWrapperImpl implements HttpClientWrapperInternal {
                                    .map(HttpHeaderUtils::deserializeHeaders)
                                    .orElseGet(MultiMap::caseInsensitiveMultiMap);
         Buffer payload = Optional.ofNullable(reqData).map(RequestData::body).map(JsonObject::toBuffer).orElse(null);
+        String query = Optional.ofNullable(reqData)
+                               .flatMap(r -> Optional.ofNullable(HttpRequestUtils.serializeQuery(r.filter())))
+                               .orElse(null);
+        if (Strings.isNotBlank(query)) {
+            options.setURI(Urls.buildURL(options.getURI(), query));
+        }
         return openRequest(options).map(req -> {
                                        req.headers().addAll(headers);
                                        return req;
                                    })
                                    .flatMap(req -> payload == null ? req.send() : req.send(payload))
                                    .recover(this::wrapError)
-                                   .flatMap(HttpClientJsonResponseHandler.create(swallowError, config.getHttpHandlers()
-                                                                                                     .getRespTextHandlerCls()));
+                                   .flatMap(HttpClientJsonResponseHandler.create(swallowError,
+                                                                                 extConfig.getHttpHandlers()
+                                                                                          .getRespTextHandlerCls()));
     }
 
     @Override
@@ -134,7 +148,7 @@ class HttpClientWrapperImpl implements HttpClientWrapperInternal {
         return openWebSocket(options).map(ws -> {
             transporter.register(plan.outbound().getAddress(), new WebSocketClientWriter(ws));
             EventDirection inbound = plan.inbound();
-            WebSocketHandlersConfig h = config.getWebSocketHandlers();
+            WebSocketHandlersConfig h = extConfig.getWebSocketHandlers();
             ws.handler(WebSocketClientDispatcher.create(transporter, inbound, h.getDispatcherCls()))
               .exceptionHandler(WebSocketClientErrorHandler.create(transporter, inbound, h.getErrorHandlerCls()));
             return EventMessage.success(EventAction.parse("OPEN"),
@@ -147,7 +161,7 @@ class HttpClientWrapperImpl implements HttpClientWrapperInternal {
 
     private <T> Future<T> recover(Throwable error, Function<HttpClient, Future<T>> fun) {
         if (error instanceof IllegalStateException && "Client is closed".equals(error.getMessage())) {
-            client = transporter.getVertx().createHttpClient(config.getOptions());
+            client = transporter.getVertx().createHttpClient(extConfig.getOptions());
             return fun.apply(client);
         }
         return wrapError(error);

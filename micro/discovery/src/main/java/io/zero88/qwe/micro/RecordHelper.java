@@ -4,7 +4,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.servicediscovery.Record;
 import io.vertx.servicediscovery.types.HttpEndpoint;
 import io.vertx.servicediscovery.types.HttpLocation;
-import io.zero88.qwe.micro.httpevent.EventMethodDefinition;
+import io.zero88.qwe.http.EventMethodDefinition;
 import io.zero88.qwe.micro.servicetype.EventMessageHttpService;
 
 import lombok.AccessLevel;

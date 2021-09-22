@@ -2,12 +2,14 @@ package io.zero88.qwe.http.server;
 
 import org.jetbrains.annotations.Nullable;
 
+import io.zero88.qwe.IConfig;
+
 import lombok.NonNull;
 
 /**
  * Represents for router configuration
  */
-public interface RouterConfig extends HttpSystem {
+public interface RouterConfig extends IConfig, HttpSystem {
 
     /**
      * Defines whether router is enabled or not

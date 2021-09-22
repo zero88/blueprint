@@ -32,7 +32,4 @@ public class ServiceGatewayAnnounceMonitor extends AbstractServiceGatewayMonitor
         return "service-announcement-gateway";
     }
 
-    @Override
-    protected void process(Record monitorObject) { }
-
 }

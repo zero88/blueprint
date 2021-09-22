@@ -13,7 +13,6 @@ import lombok.experimental.Accessors;
 public final class HttpServerPluginContext extends DefaultPluginContext {
 
     public static final String SERVER_INFO_DATA_KEY = "SERVER_INFO";
-    public static final String SERVER_GATEWAY_ADDRESS_DATA_KEY = "SERVER_GATEWAY_ADDRESS";
     private ServerInfo serverInfo;
 
     HttpServerPluginContext(PluginContext context) {

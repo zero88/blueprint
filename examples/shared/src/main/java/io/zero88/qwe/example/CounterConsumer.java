@@ -1,10 +1,10 @@
 package io.zero88.qwe.example;
 
 import io.zero88.qwe.ApplicationVerticle;
-import io.zero88.qwe.event.EBContract;
-import io.zero88.qwe.event.EBParam;
-import io.zero88.qwe.event.EventBusClient;
-import io.zero88.qwe.event.EventListener;
+import io.zero88.qwe.eventbus.EBContract;
+import io.zero88.qwe.eventbus.EBParam;
+import io.zero88.qwe.eventbus.EventBusClient;
+import io.zero88.qwe.eventbus.EventListener;
 
 public abstract class CounterConsumer extends ApplicationVerticle implements CounterApp {
 

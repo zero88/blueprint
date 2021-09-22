@@ -52,6 +52,10 @@ public final class ErrorCode extends AbstractEnumType implements io.github.zero8
         return EnumType.factory(code, ErrorCode.class, true);
     }
 
+    public static ErrorCode wrap(io.github.zero88.exceptions.ErrorCode code) {
+        return code instanceof ErrorCode ? (ErrorCode) code : ErrorCode.parse(code.code());
+    }
+
     public int hashCode() {
         return this.code().hashCode();
     }

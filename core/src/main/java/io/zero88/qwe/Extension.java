@@ -3,7 +3,10 @@ package io.zero88.qwe;
 import java.nio.file.Path;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import io.vertx.core.json.JsonObject;
+import io.zero88.qwe.crypto.CryptoContext;
+import io.zero88.qwe.crypto.CryptoRequest;
 
 /**
  * @param <C> Type of Extension config
@@ -11,8 +14,8 @@ import org.jetbrains.annotations.Nullable;
  * @see ExtensionConfig
  * @see ExtensionEntrypoint
  */
-public interface Extension<C extends ExtensionConfig, E extends ExtensionEntrypoint>
-    extends HasConfig<C>, HasConfigKey {
+public interface Extension<C extends ExtensionConfig, E extends ExtensionEntrypoint<C>>
+    extends HasConfig<C>, HasConfigKey, CryptoRequest {
 
     /**
      * Extension name
@@ -26,26 +29,20 @@ public interface Extension<C extends ExtensionConfig, E extends ExtensionEntrypo
     /**
      * Setup {@code Extension} when {@code Application} start
      *
-     * @param sharedData shared data proxy
-     * @param appName    application name
-     * @param appDir     application data dir
-     * @param config     extension config
+     * @param sharedData    shared data proxy
+     * @param appName       application name
+     * @param appDir        application data dir
+     * @param config        extension config
+     * @param cryptoContext crypto request
      * @return a reference to this for fluent API
      */
     Extension<C, E> setup(@NotNull SharedDataLocalProxy sharedData, @NotNull String appName, @NotNull Path appDir,
-                          @Nullable C config);
+                          @NotNull JsonObject config, @NotNull CryptoContext cryptoContext);
 
     /**
      * Stop {@code Extension} when {@code Application} stop
      */
     void stop();
-
-    /**
-     * Get extension config
-     *
-     * @return extension config
-     */
-    C extConfig();
 
     /**
      * Get extension entrypoint

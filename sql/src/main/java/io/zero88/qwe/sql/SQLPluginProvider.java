@@ -4,7 +4,6 @@ import io.zero88.jooqx.SQLExecutor;
 import io.zero88.jooqx.SQLPreparedQuery;
 import io.zero88.jooqx.SQLResultCollector;
 import io.zero88.qwe.PluginProvider;
-import io.zero88.qwe.SharedDataLocalProxy;
 import io.zero88.qwe.sql.handler.EntityHandler;
 import io.zero88.qwe.sql.handler.JooqxBaseExtension;
 
@@ -27,8 +26,8 @@ public final class SQLPluginProvider<S, B, PQ extends SQLPreparedQuery<B>, RS, R
     }
 
     @Override
-    public SQLPlugin provide(SharedDataLocalProxy sharedDataLocalProxy) {
-        return new SQLPlugin<>(sharedDataLocalProxy, entityHandlerClass, jooqxExtensionClass);
+    public SQLPlugin get() {
+        return new SQLPlugin<>(entityHandlerClass, jooqxExtensionClass);
     }
 
 }

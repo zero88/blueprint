@@ -20,14 +20,14 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 
 /**
- * An {@code Application} configuration can contains itself configuration and its {@code plugin} configurations
+ * An {@code Application} configuration contains itself configuration and its {@code plugin} or {@code extension} configurations
  *
  * @see Application
  * @see PluginConfig
+ * @see ExtensionConfig
  */
 public final class QWEAppConfig extends HasOtherConfig<QWEAppConfig> implements IConfig {
 
-    public static final String KEY = "__app__";
     public static final String DELIVERY_OPTIONS = "__delivery__";
 
     public static final String DATA_DIR = "dataDir";
@@ -64,7 +64,7 @@ public final class QWEAppConfig extends HasOtherConfig<QWEAppConfig> implements 
     }
 
     @Override
-    public String configKey() {return KEY;}
+    public String configKey() {return QWEConfig.APP_CONF_KEY;}
 
     @Override
     public Class<? extends IConfig> parent() {return QWEConfig.class;}

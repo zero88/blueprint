@@ -3,7 +3,6 @@ package io.zero88.qwe.mock;
 import io.zero88.qwe.PluginContext;
 import io.zero88.qwe.PluginProvider;
 import io.zero88.qwe.PluginVerticle;
-import io.zero88.qwe.SharedDataLocalProxy;
 import io.zero88.qwe.mock.DummyPluginProvider.DummyPlugin;
 
 import lombok.NonNull;
@@ -14,15 +13,11 @@ public final class DummyPluginProvider implements PluginProvider<DummyPlugin> {
     public Class<DummyPlugin> pluginClass() {return DummyPlugin.class;}
 
     @Override
-    public DummyPlugin provide(SharedDataLocalProxy sharedData) {
-        return new DummyPlugin(sharedData);
+    public DummyPlugin get() {
+        return new DummyPlugin();
     }
 
     static final class DummyPlugin extends PluginVerticle<MockPluginConfig, PluginContext> {
-
-        DummyPlugin(SharedDataLocalProxy sharedData) {
-            super(sharedData);
-        }
 
         @Override
         public String pluginName() {

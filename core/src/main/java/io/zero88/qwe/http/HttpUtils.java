@@ -1,7 +1,6 @@
 package io.zero88.qwe.http;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,6 +16,7 @@ import io.github.zero88.exceptions.InvalidUrlException;
 import io.github.zero88.utils.Strings;
 import io.github.zero88.utils.Urls;
 import io.vertx.core.MultiMap;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpMethod;
@@ -24,6 +24,9 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.zero88.qwe.dto.JsonData;
+import io.zero88.qwe.dto.jackson.QWEJsonCodec;
+import io.zero88.qwe.dto.jackson.QWEJsonFactory;
 import io.zero88.qwe.dto.jpa.Pagination;
 import io.zero88.qwe.dto.jpa.Sort;
 import io.zero88.qwe.dto.msg.RequestFilter;
@@ -37,6 +40,7 @@ public final class HttpUtils {
 
     public static final String JSON_CONTENT_TYPE = "application/json";
     public static final String JSON_UTF8_CONTENT_TYPE = "application/json;charset=utf-8";
+    public static final List<String> JSON_CONTENT_TYPES = Arrays.asList(JSON_CONTENT_TYPE, JSON_UTF8_CONTENT_TYPE);
     public static final String NONE_CONTENT_TYPE = "no-content-type";
     public static final Set<HttpMethod> DEFAULT_CORS_HTTP_METHOD = Collections.unmodifiableSet(new HashSet<>(
         Arrays.asList(HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT, HttpMethod.PATCH, HttpMethod.DELETE,
@@ -46,16 +50,12 @@ public final class HttpUtils {
         return Boolean.parseBoolean(request.getParam(RequestFilter.PRETTY));
     }
 
-    public static <T> String prettify(T result, HttpServerRequest request) {
-        boolean pretty = isPretty(request);
-        if (result instanceof Collection) {
-            final JsonArray jsonArray = ((Collection<?>) result).stream()
-                                                                .collect(JsonArray::new, JsonArray::add,
-                                                                         JsonArray::addAll);
-            return pretty ? jsonArray.encodePrettily() : jsonArray.encode();
-        }
-        final JsonObject jsonObject = JsonObject.mapFrom(result);
-        return pretty ? jsonObject.encodePrettily() : jsonObject.encode();
+    public static <T> Buffer prettify(HttpServerRequest request, T result) {
+        return QWEJsonFactory.CODEC.toBuffer(result, isPretty(request));
+    }
+
+    public static Buffer prettify(HttpServerRequest request, JsonData result) {
+        return QWEJsonCodec.toBuffer(result, isPretty(request) ? result.getPrettyMapper() : result.getMapper());
     }
 
     public static final class HttpHeaderUtils {
@@ -109,7 +109,7 @@ public final class HttpUtils {
     }
 
 
-    public static final class HttpRequests {
+    public static final class HttpRequestUtils {
 
         private static final String EQUAL = "=";
         private static final String SEPARATE = "&";

@@ -6,13 +6,13 @@ dependencies {
     api(JacksonLibs.core)
     api(JacksonLibs.databind)
     api(JacksonLibs.datetime)
-    api(LogLibs.slf4j)
-    api(UtilLibs.jetbrainsAnnotations)
     api(VertxLibs.core)
+    api(VertxLibs.auth)
     api(ZeroLibs.utils)
     api(ZeroLibs.jpaExt)
-
-    implementation(VertxLibs.config)
+    api(JSRLibs.annotation)
+    api(LogLibs.slf4j)
+    api(UtilLibs.jetbrainsAnnotations)
 
     compileOnly(VertxLibs.hazelcast)
     compileOnly(VertxLibs.zookeeper)
@@ -27,6 +27,7 @@ dependencies {
     testImplementation(VertxLibs.junit)
     testImplementation(VertxLibs.junit5)
     testImplementation(VertxLibs.rx2)
+    testImplementation(VertxLibs.jwt)
 
     testFixturesApi(testFixtures(ZeroLibs.utils))
     testFixturesApi(LogLibs.logback)
@@ -41,28 +42,9 @@ dependencies {
     testFixturesAnnotationProcessor(UtilLibs.lombok)
 }
 
-tasks.register<JavaCompile>("annotationProcessing") {
-    group = "other"
-    source = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME).java
-    destinationDir = project.file("${project.buildDir}/generated/main/java")
-    classpath = configurations.compileClasspath.get()
-    options.annotationProcessorPath = configurations.compileClasspath.get()
-    options.compilerArgs = listOf(
-        "-proc:only",
-        "-processor", "io.vertx.codegen.CodeGenProcessor",
-        "-Acodegen.output=${project.projectDir}/src/main"
-    )
-}
-
-tasks.compileJava {
-    dependsOn(tasks.named("annotationProcessing"))
-}
-
-sourceSets {
-    main {
-        java {
-            srcDirs(project.file("${project.buildDir}/generated/main/java"))
-        }
+tasks {
+    register<JavaCodeGenTask>("annotationProcessing")
+    compileJava {
+        dependsOn(withType<JavaCodeGenTask>())
     }
 }
-

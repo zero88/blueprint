@@ -1,5 +1,6 @@
 {
   "userAgent": "qwe.httpclient",
+  "http2Enabled": false,
   "options": {
     "logActivity": false,
     "receiveBufferSize": -1,

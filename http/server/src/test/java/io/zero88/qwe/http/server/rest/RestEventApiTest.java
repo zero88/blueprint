@@ -6,13 +6,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.zero88.qwe.event.EventBusClient;
+import io.zero88.qwe.eventbus.EventBusClient;
 import io.zero88.qwe.exceptions.ErrorCode;
 import io.zero88.qwe.http.server.HttpServerRouter;
 import io.zero88.qwe.http.server.HttpServerPluginTestBase;
 import io.zero88.qwe.http.server.RestApiTestHelper;
-import io.zero88.qwe.http.server.mock.MockEventBusErrorListener;
-import io.zero88.qwe.http.server.mock.MockEventBusSuccessListener;
+import io.zero88.qwe.http.server.mock.MockEventErrorListener;
+import io.zero88.qwe.http.server.mock.MockEventSuccessListener;
 import io.zero88.qwe.http.server.mock.MockRestEventApi;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
@@ -36,17 +36,17 @@ public class RestEventApiTest extends HttpServerPluginTestBase implements RestAp
 
     @Test
     public void test_api_eventbus_error_unexpected(TestContext context) {
-        EventBusClient.create(createSharedData(vertx)).register("http.server.test", new MockEventBusErrorListener());
+        EventBusClient.create(createSharedData(vertx)).register("http.server.test", new MockEventErrorListener());
         String path = "/api/test/events";
         JsonObject expected = new JsonObject().put("code", ErrorCode.UNKNOWN_ERROR.code())
-                                              .put("message", "UNKNOWN_ERROR | Cause: xxx");
+                                              .put("message", "UNKNOWN_ERROR | Cause(xxx)");
         startServer(context, new HttpServerRouter().registerEventBusApi(MockRestEventApi.class));
         sendToApiThenAssert(context, HttpMethod.GET, path, 500, expected);
     }
 
     @Test
     public void test_api_eventbus_error_from_server(TestContext context) {
-        EventBusClient.create(createSharedData(vertx)).register("http.server.test", new MockEventBusErrorListener());
+        EventBusClient.create(createSharedData(vertx)).register("http.server.test", new MockEventErrorListener());
         String path = "/api/test/events";
         JsonObject expected = new JsonObject().put("code", ErrorCode.ENGINE_ERROR.code()).put("message", "Engine error");
         startServer(context, new HttpServerRouter().registerEventBusApi(MockRestEventApi.class));
@@ -55,7 +55,7 @@ public class RestEventApiTest extends HttpServerPluginTestBase implements RestAp
 
     @Test
     public void test_api_eventbus_error_from_user(TestContext context) {
-        EventBusClient.create(createSharedData(vertx)).register("http.server.test", new MockEventBusErrorListener());
+        EventBusClient.create(createSharedData(vertx)).register("http.server.test", new MockEventErrorListener());
         String path = "/api/test/events/:event_id";
         JsonObject expected = new JsonObject().put("code", ErrorCode.INVALID_ARGUMENT.code()).put("message", "invalid");
         startServer(context, new HttpServerRouter().registerEventBusApi(MockRestEventApi.class));
@@ -63,18 +63,17 @@ public class RestEventApiTest extends HttpServerPluginTestBase implements RestAp
     }
 
     @Test
-    //FIXME eventbus timeout vs httpclient timeout
     public void test_api_eventbus_no_reply(TestContext context) {
         String path = "/api/test/events/:event_id";
-        JsonObject expected = new JsonObject().put("code", ErrorCode.SERVICE_ERROR.code())
-                                              .put("message", "Service unavailable");
+        JsonObject expected = new JsonObject().put("code", ErrorCode.SERVICE_UNAVAILABLE)
+                                              .put("message", "No response");
         startServer(context, new HttpServerRouter().registerEventBusApi(MockRestEventApi.class));
         sendToApiThenAssert(context, HttpMethod.GET, path, 503, expected);
     }
 
     @Test
     public void test_api_eventbus_success_data_list(TestContext context) {
-        EventBusClient.create(createSharedData(vertx)).register("http.server.test", new MockEventBusSuccessListener());
+        EventBusClient.create(createSharedData(vertx)).register("http.server.test", new MockEventSuccessListener());
         String path = "/api/test/events";
         JsonObject expected = new JsonObject().put("data", Arrays.asList("1", "2", "3"));
         startServer(context, new HttpServerRouter().registerEventBusApi(MockRestEventApi.class));
@@ -83,7 +82,7 @@ public class RestEventApiTest extends HttpServerPluginTestBase implements RestAp
 
     @Test
     public void test_api_eventbus_success_data_other(TestContext context) {
-        EventBusClient.create(createSharedData(vertx)).register("http.server.test", new MockEventBusSuccessListener());
+        EventBusClient.create(createSharedData(vertx)).register("http.server.test", new MockEventSuccessListener());
         String path = "/api/test/events/1";
         JsonObject expected = new JsonObject().put("data", 1);
         startServer(context, new HttpServerRouter().registerEventBusApi(MockRestEventApi.class));
@@ -92,7 +91,7 @@ public class RestEventApiTest extends HttpServerPluginTestBase implements RestAp
 
     @Test
     public void test_api_eventbus_success_data_json(TestContext context) {
-        EventBusClient.create(createSharedData(vertx)).register("http.server.test", new MockEventBusSuccessListener());
+        EventBusClient.create(createSharedData(vertx)).register("http.server.test", new MockEventSuccessListener());
         String path = "/api/test/events";
         JsonObject expected = new JsonObject().put("create", "success");
         startServer(context, new HttpServerRouter().registerEventBusApi(MockRestEventApi.class));
@@ -101,7 +100,7 @@ public class RestEventApiTest extends HttpServerPluginTestBase implements RestAp
 
     @Test
     public void test_api_eventbus_success_data_single(TestContext context) {
-        EventBusClient.create(createSharedData(vertx)).register("http.server.test", new MockEventBusSuccessListener());
+        EventBusClient.create(createSharedData(vertx)).register("http.server.test", new MockEventSuccessListener());
         String path = "/api/test/events/1";
         JsonObject expected = new JsonObject().put("data", "success");
         startServer(context, new HttpServerRouter().registerEventBusApi(MockRestEventApi.class));
@@ -110,7 +109,7 @@ public class RestEventApiTest extends HttpServerPluginTestBase implements RestAp
 
     @Test
     public void test_api_eventbus_success_data_single_json(TestContext context) {
-        EventBusClient.create(createSharedData(vertx)).register("http.server.test", new MockEventBusSuccessListener());
+        EventBusClient.create(createSharedData(vertx)).register("http.server.test", new MockEventSuccessListener());
         String path = "/api/test/events/1";
         JsonObject expected = new JsonObject().put("patch", "success").put("event_id", 1);
         startServer(context, new HttpServerRouter().registerEventBusApi(MockRestEventApi.class));

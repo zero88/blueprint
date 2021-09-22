@@ -22,7 +22,7 @@ public class ErrorMessageTest {
         final ErrorMessage message = ErrorMessage.parse(
             new CompositeException(new RuntimeException("1"), new RuntimeException("2")));
         Assertions.assertEquals(io.github.zero88.exceptions.ErrorCode.UNKNOWN_ERROR, message.getCode());
-        Assertions.assertEquals("UNKNOWN_ERROR | Cause: 2", message.getMessage());
+        Assertions.assertEquals("UNKNOWN_ERROR | Cause(2)", message.getMessage());
     }
 
     @Test
@@ -30,7 +30,7 @@ public class ErrorMessageTest {
         final ErrorMessage message = ErrorMessage.parse(
             new CompositeException(new DataNotFoundException("xxx"), new IllegalStateException("abc")));
         Assertions.assertEquals(io.github.zero88.exceptions.ErrorCode.UNKNOWN_ERROR, message.getCode());
-        Assertions.assertEquals("UNKNOWN_ERROR | Cause: abc", message.getMessage());
+        Assertions.assertEquals("UNKNOWN_ERROR | Cause(abc)", message.getMessage());
     }
 
     @Test
@@ -52,7 +52,7 @@ public class ErrorMessageTest {
     public void test_unexpected_exception_with_message() {
         final ErrorMessage message = ErrorMessage.parse(new RuntimeException("hey"));
         Assertions.assertEquals(io.github.zero88.exceptions.ErrorCode.UNKNOWN_ERROR, message.getCode());
-        Assertions.assertEquals("UNKNOWN_ERROR | Cause: hey", message.getMessage());
+        Assertions.assertEquals("UNKNOWN_ERROR | Cause(hey)", message.getMessage());
     }
 
     @Test

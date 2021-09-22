@@ -17,7 +17,7 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 public class UploadDownloadServerTest extends HttpServerPluginTestBase {
 
     @Rule
-    public Timeout timeout = Timeout.seconds(TestHelper.TEST_TIMEOUT_SEC);
+    public Timeout timeout = Timeout.seconds(3000);
 
     @Override
     protected String httpConfigFile() { return "uploadDownload.json"; }

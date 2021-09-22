@@ -1,6 +1,7 @@
 package io.zero88.qwe.http.server;
 
 import io.github.zero88.utils.HttpScheme;
+import io.github.zero88.utils.Strings;
 import io.github.zero88.utils.Urls;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.AllowForwardHeaders;
@@ -15,6 +16,7 @@ import io.zero88.qwe.http.server.config.Http2Config;
 import io.zero88.qwe.http.server.config.StaticWebConfig;
 import io.zero88.qwe.http.server.config.WebSocketConfig;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AccessLevel;
@@ -34,11 +36,7 @@ public final class HttpServerConfig implements PluginDirConfig {
     public static final String KEY = "__http__";
     private String host = "0.0.0.0";
     private int port = 8080;
-    @Getter(value = AccessLevel.PRIVATE)
-    private String publicHost = "";
-    @Getter(value = AccessLevel.PRIVATE)
-    private int publicPort = -1;
-    private HttpScheme publicScheme = HttpScheme.HTTP;
+    private String publicServerUrl;
 
     private String pluginDir = "httpserver";
     private int maxBodySizeMB = 2;
@@ -64,11 +62,22 @@ public final class HttpServerConfig implements PluginDirConfig {
     @JsonProperty(value = StaticWebConfig.NAME)
     private StaticWebConfig staticWebConfig = new StaticWebConfig();
 
-    @Override
-    public String configKey() { return KEY; }
+    @JsonIgnore
+    private HttpRuntimeConfig runtimeConfig;
 
-    public String publicServerUrl() {
-        return Urls.buildURL(publicScheme, publicHost, publicPort);
+    @Override
+    public String configKey() {return KEY;}
+
+    public String getPublicServerUrl() {
+        if (Strings.isNotBlank(publicServerUrl)) {
+            return publicServerUrl;
+        }
+        publicServerUrl = Urls.buildURL(http2Cfg.isEnabled() ? HttpScheme.HTTPS : HttpScheme.HTTP, host, port);
+        return publicServerUrl;
+    }
+
+    public long maxBodySize() {
+        return maxBodySizeMB < 0 ? -1 : maxBodySizeMB * MB;
     }
 
     @NoArgsConstructor
@@ -77,10 +86,10 @@ public final class HttpServerConfig implements PluginDirConfig {
         public static final String NAME = "__options__";
 
         @Override
-        public String configKey() { return NAME; }
+        public String configKey() {return NAME;}
 
         @Override
-        public Class<? extends IConfig> parent() { return HttpServerConfig.class; }
+        public Class<? extends IConfig> parent() {return HttpServerConfig.class;}
 
     }
 

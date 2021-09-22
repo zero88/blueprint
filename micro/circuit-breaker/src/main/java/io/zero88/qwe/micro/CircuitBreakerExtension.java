@@ -1,11 +1,14 @@
 package io.zero88.qwe.micro;
 
 import java.nio.file.Path;
-import java.util.Optional;
+
+import org.jetbrains.annotations.NotNull;
 
 import io.vertx.circuitbreaker.CircuitBreaker;
+import io.vertx.core.json.JsonObject;
 import io.zero88.qwe.Extension;
 import io.zero88.qwe.SharedDataLocalProxy;
+import io.zero88.qwe.crypto.CryptoContext;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -41,8 +44,8 @@ public final class CircuitBreakerExtension
 
     @Override
     public CircuitBreakerExtension setup(SharedDataLocalProxy sharedData, String appName, Path appDir,
-                                         CircuitBreakerConfig config) {
-        extConfig = Optional.ofNullable(config).orElseGet(CircuitBreakerConfig::new);
+                                         @NotNull JsonObject config, @NotNull CryptoContext cryptoContext) {
+        extConfig = computeConfig(config);
         circuitBreaker = CircuitBreaker.create(appName + "-" + extConfig.getExtName(), sharedData.getVertx(),
                                                extConfig.getOptions());
         return this;

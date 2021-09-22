@@ -12,7 +12,7 @@ import io.vertx.junit5.VertxTestContext;
 import io.zero88.qwe.JsonHelper.Junit4;
 import io.zero88.qwe.TestHelper;
 import io.zero88.qwe.dto.msg.RequestData;
-import io.zero88.qwe.event.EventAction;
+import io.zero88.qwe.eventbus.EventAction;
 import io.zero88.qwe.exceptions.ErrorCode;
 import io.zero88.qwe.exceptions.QWEException;
 import io.zero88.qwe.micro.BaseDiscoveryPluginTest;

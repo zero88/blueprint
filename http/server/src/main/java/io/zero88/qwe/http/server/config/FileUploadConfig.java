@@ -1,9 +1,7 @@
 package io.zero88.qwe.http.server.config;
 
-import io.zero88.qwe.IConfig;
-import io.zero88.qwe.http.server.BasePaths;
-import io.zero88.qwe.http.server.HttpSystem.UploadSystem;
 import io.zero88.qwe.http.server.HttpServerConfig;
+import io.zero88.qwe.http.server.HttpSystem.UploadSystem;
 import io.zero88.qwe.http.server.RouterConfig;
 import io.zero88.qwe.http.server.upload.UploadFileHandler;
 import io.zero88.qwe.http.server.upload.UploadListener;
@@ -15,7 +13,7 @@ import lombok.Setter;
 
 @Getter
 @Setter(value = AccessLevel.PACKAGE)
-public final class FileUploadConfig extends AbstractRouterConfig implements IConfig, RouterConfig, UploadSystem {
+public final class FileUploadConfig extends AbstractRouterConfig implements RouterConfig, UploadSystem {
 
     public static final String NAME = "__upload__";
 
@@ -31,7 +29,7 @@ public final class FileUploadConfig extends AbstractRouterConfig implements ICon
 
     @Override
     protected @NonNull String defaultPath() {
-        return BasePaths.ROOT_UPLOAD_PATH;
+        return "/u";
     }
 
 }

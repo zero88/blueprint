@@ -1,6 +1,5 @@
 package io.zero88.qwe.cluster;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -15,7 +14,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.Getter;
 
 @Getter
-public final class ClusterType extends AbstractEnumType implements Shareable, Serializable {
+public final class ClusterType extends AbstractEnumType implements Shareable {
 
     public static final ClusterType HAZELCAST = new ClusterType("HAZELCAST",
                                                                 Arrays.asList("hazelcast.jar", "vertx-hazelcast.jar"),

@@ -7,7 +7,7 @@ import io.zero88.qwe.ApplicationProbeHandler.ApplicationReadinessHandler;
 import io.zero88.qwe.JsonHelper.Junit4;
 import io.zero88.qwe.dto.ErrorData;
 import io.zero88.qwe.dto.msg.RequestData;
-import io.zero88.qwe.event.EBContract;
+import io.zero88.qwe.eventbus.EBContract;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;

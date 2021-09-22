@@ -25,8 +25,7 @@ public abstract class HttpExtensionTestBase implements ExtensionTestHelper {
 
     @BeforeEach
     void before(Vertx vertx) {
-        HttpClientConfig config = new HttpClientConfig();
-        extension = initExtension(vertx, HttpClientExtension.class, config);
+        extension = initExtension(vertx, HttpClientExtension.class, new HttpClientConfig());
     }
 
     @AfterEach

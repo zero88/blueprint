@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonObject;
@@ -23,7 +24,7 @@ public class QWEConfigTest {
         Assertions.assertNull(from.getBootConfig());
 
         Assertions.assertNotNull(from.getDeployConfig());
-        Assertions.assertEquals(new QWEDeployConfig().toJson(), from.getDeployConfig().toJson());
+        Assertions.assertEquals(new DeploymentOptions().toJson(), from.getDeployConfig().toJson());
 
         Assertions.assertNotNull(from.getAppConfig());
         Assertions.assertEquals(QWEAppConfig.DEFAULT_DATADIR, from.getAppConfig().dataDir());
@@ -64,7 +65,7 @@ public class QWEConfigTest {
     public void test_deserialize_child_from_root() {
         String jsonStr = "{\"__deploy__\":{\"ha\":true,\"instances\":10,\"maxWorkerExecuteTime\":60000000000," +
                          "\"maxWorkerExecuteTimeUnit\":\"NANOSECONDS\",\"worker\":false,\"workerPoolSize\":20}}";
-        QWEDeployConfig cfg = IConfig.from(jsonStr, QWEDeployConfig.class);
+        DeploymentOptions cfg = IConfig.from(jsonStr, QWEDeployConfig.class);
         Assertions.assertNotNull(cfg);
         Assertions.assertTrue(cfg.isHa());
         Assertions.assertEquals(10, cfg.getInstances());

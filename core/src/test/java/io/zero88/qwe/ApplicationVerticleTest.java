@@ -1,6 +1,7 @@
 package io.zero88.qwe;
 
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -8,7 +9,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.slf4j.LoggerFactory;
 
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Handler;
@@ -27,7 +27,6 @@ import io.zero88.qwe.mock.MockPluginConfig;
 import io.zero88.qwe.mock.MockPluginProvider;
 
 import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
 
 @RunWith(VertxUnitRunner.class)
 public class ApplicationVerticleTest {
@@ -37,8 +36,7 @@ public class ApplicationVerticleTest {
 
     @BeforeClass
     public static void beforeSuite() {
-        TestHelper.setup();
-        ((Logger) LoggerFactory.getLogger("io.zero88")).setLevel(Level.TRACE);
+        TestHelper.setup(Level.TRACE);
     }
 
     @Before
@@ -55,6 +53,7 @@ public class ApplicationVerticleTest {
     @Test
     public void test_compute_deployment_option_per_plugin(TestContext context) {
         Async async = context.async(2);
+        Pattern p = Pattern.compile(Application.generateThreadName(app.getClass(), app.appName(), "[A-Za-z\\.]+"));
         Consumer<String> asserter = deployId -> {
             TestHelper.testComplete(async);
             Assert.assertEquals(3, vertx.deploymentIDs().size());
@@ -63,10 +62,10 @@ public class ApplicationVerticleTest {
                  .map(id -> ((VertxImpl) vertx).getDeployment(id))
                  .filter(Deployment::isChild)
                  .map(Deployment::deploymentOptions)
-                 .forEach(opt -> {
+                 .forEach(opt -> context.verify(i -> {
                      Assert.assertEquals(7, opt.getWorkerPoolSize());
-                     Assert.assertTrue(opt.getWorkerPoolName().startsWith(Application.DEFAULT_PLUGIN_THREAD_PREFIX));
-                 });
+                     Assert.assertTrue(p.matcher(opt.getWorkerPoolName()).matches());
+                 }));
         };
         deployThenSucceed(context, app.onCompleted(i -> TestHelper.testComplete(async))
                                       .addProvider(new DummyPluginProvider())
@@ -77,11 +76,11 @@ public class ApplicationVerticleTest {
     @Test
     public void test_use_deployment_option_from_plugin(TestContext context) {
         Async async = context.async(2);
-        QWEAppConfig config = new QWEAppConfig().put(new MockPluginConfig().deploymentKey(),
-                                                     new DeploymentOptions().setHa(true)
-                                                                            .setWorkerPoolSize(3)
-                                                                            .setWorkerPoolName("test")
-                                                                            .toJson());
+        final String deployKey = PluginConfig.PLUGIN_DEPLOY_CONFIG_KEY + MockPluginConfig.MOCK_CFG_KEY;
+        QWEAppConfig config = new QWEAppConfig().put(deployKey, new DeploymentOptions().setHa(true)
+                                                                                       .setWorkerPoolSize(3)
+                                                                                       .setWorkerPoolName("test")
+                                                                                       .toJson());
         Consumer<String> asserter = deployId -> {
             context.assertNotNull(deployId);
             TestHelper.testComplete(async);
@@ -91,11 +90,11 @@ public class ApplicationVerticleTest {
                  .map(id -> ((VertxImpl) vertx).getDeployment(id))
                  .filter(Deployment::isChild)
                  .map(Deployment::deploymentOptions)
-                 .forEach(opt -> {
+                 .forEach(opt -> context.verify(i -> {
                      Assert.assertTrue(opt.isHa());
                      Assert.assertEquals(3, opt.getWorkerPoolSize());
                      Assert.assertEquals("test", opt.getWorkerPoolName());
-                 });
+                 }));
         };
         deployThenSucceed(context,
                           app.onCompleted(i -> TestHelper.testComplete(async)).addProvider(new DummyPluginProvider()),

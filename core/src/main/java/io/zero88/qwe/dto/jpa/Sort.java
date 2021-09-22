@@ -11,9 +11,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.github.zero88.jpa.Sortable;
-import io.zero88.qwe.dto.JsonData;
 import io.github.zero88.utils.Strings;
 import io.vertx.core.json.JsonObject;
+import io.zero88.qwe.dto.JsonData;
+import io.zero88.qwe.utils.JsonUtils.JsonCollectors;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
@@ -87,8 +88,7 @@ public final class Sort implements Sortable, JsonData {
 
     @Override
     public JsonObject toJson() {
-        return JsonData.MAPPER.convertValue(
-            orders().stream().collect(Collectors.toMap(Order::property, Order::direction)), JsonObject.class);
+        return orders().stream().collect(JsonCollectors.toJson(Order::property, Order::direction));
     }
 
     @JsonPOJOBuilder(withPrefix = "")

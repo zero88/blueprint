@@ -6,7 +6,6 @@ import io.github.zero88.repl.ReflectionClass;
 import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.zero88.qwe.IConfig;
-import io.zero88.qwe.http.server.BasePaths;
 import io.zero88.qwe.http.server.HttpServerConfig;
 import io.zero88.qwe.http.server.HttpSystem.WebSocketSystem;
 import io.zero88.qwe.http.server.RouterConfig;
@@ -21,7 +20,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public final class WebSocketConfig extends AbstractRouterConfig implements IConfig, RouterConfig, WebSocketSystem {
+public final class WebSocketConfig extends AbstractRouterConfig implements RouterConfig, WebSocketSystem {
 
     public static final String NAME = "__websocket__";
     private String bridgeHandlerClass = DefaultWebSocketBridgeEventHandler.class.getName();
@@ -31,7 +30,7 @@ public final class WebSocketConfig extends AbstractRouterConfig implements IConf
     private SocketBridgeConfig bridgeOptions = new SocketBridgeConfig();
 
     public WebSocketConfig() {
-        super(NAME, HttpServerConfig.class, false, BasePaths.ROOT_WS_PATH);
+        super(NAME, HttpServerConfig.class);
     }
 
     public @Nullable Class<? extends WebSocketBridgeEventHandler> bridgeHandlerClass() {
@@ -40,7 +39,7 @@ public final class WebSocketConfig extends AbstractRouterConfig implements IConf
 
     @Override
     protected @NonNull String defaultPath() {
-        return BasePaths.ROOT_WS_PATH;
+        return "/ws";
     }
 
     public static class SockJSConfig extends SockJSHandlerOptions implements IConfig {
@@ -48,10 +47,10 @@ public final class WebSocketConfig extends AbstractRouterConfig implements IConf
         public static final String NAME = "__sockjs__";
 
         @Override
-        public String configKey() { return NAME; }
+        public String configKey() {return NAME;}
 
         @Override
-        public Class<? extends IConfig> parent() { return WebSocketConfig.class; }
+        public Class<? extends IConfig> parent() {return WebSocketConfig.class;}
 
     }
 
@@ -61,10 +60,10 @@ public final class WebSocketConfig extends AbstractRouterConfig implements IConf
         public static final String NAME = "__bridge__";
 
         @Override
-        public String configKey() { return NAME; }
+        public String configKey() {return NAME;}
 
         @Override
-        public Class<? extends IConfig> parent() { return WebSocketConfig.class; }
+        public Class<? extends IConfig> parent() {return WebSocketConfig.class;}
 
     }
 
